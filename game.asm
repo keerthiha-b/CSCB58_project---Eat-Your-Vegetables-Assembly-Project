@@ -36,11 +36,10 @@
 .data
 
 main:
-# Bitmap display starter code
 #
 # Bitmap Display Configuration:
-# - Unit width in pixels: 4
-# - Unit height in pixels: 4
+# - Unit width in pixels: 8
+# - Unit height in pixels: 8
 # - Display width in pixels: 256
 # - Display height in pixels: 256
 # - Base Address for Display: 0x10008000 ($gp)
@@ -49,12 +48,18 @@ main:
 
 .text
 li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0xff0000 # $t1 stores the red colour code
-li $t2, 0x00ff00 # $t2 stores the green colour code
+li $t1, 0x10000 # save 256*256 pixels
+li $t4, 0xffc0cb # $t1 stores the pink colour code for background
+li $t2, 0x592D29 # $t2 stores the brown colour code for platforms
 li $t3, 0x0000ff # $t3 stores the blue colour code
-sw $t1, 0($t0) # paint the first (top-left) unit red.
-sw $t2, 4($t0) # paint the second unit on the first row green. Why $t0+4?
-sw $t3, 256($t0) # paint the first unit on the second row blue. Why +256?
+
+background:
+sw $t4, 0($t0) # load pink color onto stack at current address
+addi $t0, $t0, 4 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixels
+bgtz $t1, background # repeat while there are still pixels left
+
+
 
 li $v0, 10	# exit the program
 syscall
