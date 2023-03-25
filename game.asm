@@ -52,98 +52,107 @@ main:
 
 li $t0, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
-
 li $t2, 0xffc0cb # $t1 stores the pink colour code for background
 li $t3, 0x9a3f1d # $t2 stores the brown colour code for platforms
 li $t4, 0x0000ff # $t3 stores the blue colour code
 
-background:
-sw $t2, 0($t0) # load pink color onto stack at current address
-addi $t0, $t0, 4 # go to next address to color
+li $a0, 0	#background
+add $a0, $a0, $t0
+li $a1, 0
+li $a2, 0xffc0cb
+jal platforms
+
+li $a0, 3712	#floor
+add $a0, $a0, $t0
+li $a1, 0
+li $a2,  0x9a3f1d
+jal platforms
+
+li $a0, 2968	#platform 1
+add $a0, $a0, $t0
+li $a1, 0xFFEC
+jal platforms
+
+li $a0, 2184	#platform 2
+add $a0, $a0, $t0
+li $a1, 0xFFE4
+jal platforms
+
+li $a0, 1416	#platform 3
+add $a0, $a0, $t0
+li $a1, 0xFFE4
+jal platforms
+
+li $a0, 664	#platform 4
+add $a0, $a0, $t0
+li $a1, 0xFFEC
+jal platforms
+
+li $a0, 3256	#ladder 1
+subi $a1, $a0, 128
+add $a0, $a0, $t0
+jal ladder_horizontal
+add $a1, $a1, $t0
+jal ladder_vertical
+
+li $a0, 2456	#ladder 2
+subi $a1, $a0, 128
+add $a0, $a0, $t0
+jal ladder_horizontal
+add $a1, $a1, $t0
+jal ladder_vertical
+
+li $a0, 2520	#ladder 3
+subi $a1, $a0, 128
+add $a0, $a0, $t0
+jal ladder_horizontal
+add $a1, $a1, $t0
+jal ladder_vertical
+
+li $a0, 1720	#ladder 3
+subi $a1, $a0, 128
+add $a0, $a0, $t0
+jal ladder_horizontal
+add $a1, $a1, $t0
+jal ladder_vertical
+
+li $a0, 984	#ladder 4
+subi $a1, $a0, 128
+add $a0, $a0, $t0
+jal ladder_horizontal
+add $a1, $a1, $t0
+jal ladder_vertical
+
+j END 
+
+
+platforms:
+sw $a2, 0($a0) # load brown color onto stack at specific position
+addi $a0, $a0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgtz $t1, background # repeat while there are still pixels left
-
-li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0x10000 # save 256*256 pixels
-
-platform:
-sw $t3, 3712($t0) # load brown color onto stack at 3584
-addi $t0, $t0, 4 # go to next address to color
-addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgtz $t1, platform # repeat while there are still pixels left
-
-li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0x10000 # save 256*256 pixels
-
-floating_platform:
-sw $t3, 2968($t0) # load brown color onto stack at specific position
-addi $t0, $t0, 4 # go to next address to color
-addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 0xFFEC, floating_platform # repeat while there are still pixels left
-
-li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0x10000 # save 256*256 pixels
-
-floating_platform1:
-sw $t3, 2184($t0) # load brown color onto stack at specific position
-addi $t0, $t0, 4 # go to next address to color
-addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 0xFFE4, floating_platform1 # repeat while there are still pixels left
-
-li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0x10000 # save 256*256 pixels
-
-floating_platform2:
-sw $t3, 1416($t0) # load brown color onto stack at specific position
-addi $t0, $t0, 4 # go to next address to color
-addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 0xFFE4, floating_platform2 # repeat while there are still pixels left
-
-li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0x10000 # save 256*256 pixels
-
-floating_platform3:
-sw $t3, 664($t0) # load brown color onto stack at specific position
-addi $t0, $t0, 4 # go to next address to color
-addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 0xFFEC, floating_platform3 # repeat while there are still pixels left
-
-li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0x10000 # save 256*256 pixels
+bgt $t1, $a1, platforms # repeat while there are still pixels left
+li $t1, 0x10000 # save 256*256 pixels 
+jr $ra
 
 ladder_horizontal:
-sw $t3, 3256($t0) # load brown color onto stack at specific position
-addi $t0, $t0, 4 # go to next address to color
+sw $a2, 0($a0) # load brown color onto stack at top step of ladder
+sw $a2, 256($a0) # bottom step of ladder
+addi $a0, $a0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
 bgt $t1, 0xFFFD, ladder_horizontal # repeat while there are still pixels left
+li $t1, 0x10000 # save 256*256 pixels 
+jr $ra
 
-li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0x10000 # save 256*256 pixels
-
-ladder_horizontal1:
-sw $t3, 3512($t0) # load brown color onto stack at specific position
-addi $t0, $t0, 4 # go to next address to color
+ladder_vertical:
+sw $a2, 0($a1) # load brown color onto stack at specific position - left side of ladder
+sw $a2, 12($a1) # right side of ladder
+addi $a1, $a1, 128 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 0xFFFD, ladder_horizontal1 # repeat while there are still pixels left
+bgt $t1, 0xFFFA, ladder_vertical # repeat while there are still pixels left
+li $t1, 0x10000 # save 256*256 pixels 
+jr $ra
 
-li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0x10000 # save 256*256 pixels
-
-ladder_vertical1:
-sw $t3, 3128($t0) # load brown color onto stack at specific position
-addi $t0, $t0, 128 # go to next address to color
-addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 0xFFF7, ladder_vertical1 # repeat while there are still pixels left
-
-li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0x10000 # save 256*256 pixels
-
-ladder_vertical2:
-sw $t3, 3140($t0) # load brown color onto stack at specific position
-addi $t0, $t0, 128 # go to next address to color
-addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 0xFFF7, ladder_vertical2 # repeat while there are still pixels left
-
+END:
 li $v0, 10	# exit the program
 syscall
 
