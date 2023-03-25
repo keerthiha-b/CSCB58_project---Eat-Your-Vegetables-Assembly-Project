@@ -36,7 +36,7 @@
 .data
 size: .word 0x10000
 
-
+.globl main
 main:
 #
 # Bitmap Display Configuration:
@@ -59,7 +59,6 @@ li $t2, 0xffc0cb # $t1 stores the pink colour code for background
 li $t3, 0x9a3f1d # $t2 stores the brown colour code for platforms
 li $t4, 0x0000ff # $t3 stores the blue colour code
 
-
 background:
 sw $t2, 0($t0) # load pink color onto stack at current address
 addi $t0, $t0, 4 # go to next address to color
@@ -71,6 +70,8 @@ sw $t3, 3584($t6) # load brown color onto stack at 3584
 addi $t6, $t6, 4 # go to next address to color
 addi $t8, $t8, -1	# decrease number of uncolored pixel
 bgtz $t8, platform # repeat while there are still pixels left
+
+
 
 
 li $v0, 10	# exit the program
