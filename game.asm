@@ -76,7 +76,7 @@ li $t0, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
 
 floating_platform:
-sw $t3, 2712($t0) # load brown color onto stack at specific position
+sw $t3, 2968($t0) # load brown color onto stack at specific position
 addi $t0, $t0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
 bgt $t1, 0xFFEC, floating_platform # repeat while there are still pixels left
@@ -85,7 +85,7 @@ li $t0, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
 
 floating_platform1:
-sw $t3, 1928($t0) # load brown color onto stack at specific position
+sw $t3, 2184($t0) # load brown color onto stack at specific position
 addi $t0, $t0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
 bgt $t1, 0xFFE4, floating_platform1 # repeat while there are still pixels left
@@ -94,10 +94,19 @@ li $t0, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
 
 floating_platform2:
-sw $t3, 1160($t0) # load brown color onto stack at specific position
+sw $t3, 1416($t0) # load brown color onto stack at specific position
 addi $t0, $t0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
 bgt $t1, 0xFFE4, floating_platform2 # repeat while there are still pixels left
+
+li $t0, BASE_ADDRESS # $t0 stores the base address for display
+li $t1, 0x10000 # save 256*256 pixels
+
+floating_platform3:
+sw $t3, 648($t0) # load brown color onto stack at specific position
+addi $t0, $t0, 4 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgt $t1, 0xFFE4, floating_platform3 # repeat while there are still pixels left
 
 
 
