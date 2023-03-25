@@ -67,7 +67,7 @@ li $t0, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
 
 platform:
-sw $t3, 3584($t0) # load brown color onto stack at 3584
+sw $t3, 3712($t0) # load brown color onto stack at 3584
 addi $t0, $t0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
 bgtz $t1, platform # repeat while there are still pixels left
@@ -103,12 +103,46 @@ li $t0, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
 
 floating_platform3:
-sw $t3, 648($t0) # load brown color onto stack at specific position
+sw $t3, 664($t0) # load brown color onto stack at specific position
 addi $t0, $t0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 0xFFE4, floating_platform3 # repeat while there are still pixels left
+bgt $t1, 0xFFEC, floating_platform3 # repeat while there are still pixels left
 
+li $t0, BASE_ADDRESS # $t0 stores the base address for display
+li $t1, 0x10000 # save 256*256 pixels
 
+ladder_horizontal:
+sw $t3, 3256($t0) # load brown color onto stack at specific position
+addi $t0, $t0, 4 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgt $t1, 0xFFFD, ladder_horizontal # repeat while there are still pixels left
+
+li $t0, BASE_ADDRESS # $t0 stores the base address for display
+li $t1, 0x10000 # save 256*256 pixels
+
+ladder_horizontal1:
+sw $t3, 3512($t0) # load brown color onto stack at specific position
+addi $t0, $t0, 4 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgt $t1, 0xFFFD, ladder_horizontal1 # repeat while there are still pixels left
+
+li $t0, BASE_ADDRESS # $t0 stores the base address for display
+li $t1, 0x10000 # save 256*256 pixels
+
+ladder_vertical1:
+sw $t3, 3128($t0) # load brown color onto stack at specific position
+addi $t0, $t0, 128 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgt $t1, 0xFFF7, ladder_vertical1 # repeat while there are still pixels left
+
+li $t0, BASE_ADDRESS # $t0 stores the base address for display
+li $t1, 0x10000 # save 256*256 pixels
+
+ladder_vertical2:
+sw $t3, 3140($t0) # load brown color onto stack at specific position
+addi $t0, $t0, 128 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgt $t1, 0xFFF7, ladder_vertical2 # repeat while there are still pixels left
 
 li $v0, 10	# exit the program
 syscall
