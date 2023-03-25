@@ -51,9 +51,7 @@ main:
 .text
 
 li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t6, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
-li $t8, 0x10000 # save 256*256 pixels
 
 li $t2, 0xffc0cb # $t1 stores the pink colour code for background
 li $t3, 0x9a3f1d # $t2 stores the brown colour code for platforms
@@ -65,12 +63,41 @@ addi $t0, $t0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
 bgtz $t1, background # repeat while there are still pixels left
 
-platform:
-sw $t3, 3584($t6) # load brown color onto stack at 3584
-addi $t6, $t6, 4 # go to next address to color
-addi $t8, $t8, -1	# decrease number of uncolored pixel
-bgtz $t8, platform # repeat while there are still pixels left
+li $t0, BASE_ADDRESS # $t0 stores the base address for display
+li $t1, 0x10000 # save 256*256 pixels
 
+platform:
+sw $t3, 3584($t0) # load brown color onto stack at 3584
+addi $t0, $t0, 4 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgtz $t1, platform # repeat while there are still pixels left
+
+li $t0, BASE_ADDRESS # $t0 stores the base address for display
+li $t1, 0x10000 # save 256*256 pixels
+
+floating_platform:
+sw $t3, 2712($t0) # load brown color onto stack at specific position
+addi $t0, $t0, 4 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgt $t1, 0xFFEC, floating_platform # repeat while there are still pixels left
+
+li $t0, BASE_ADDRESS # $t0 stores the base address for display
+li $t1, 0x10000 # save 256*256 pixels
+
+floating_platform1:
+sw $t3, 1928($t0) # load brown color onto stack at specific position
+addi $t0, $t0, 4 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgt $t1, 0xFFE4, floating_platform1 # repeat while there are still pixels left
+
+li $t0, BASE_ADDRESS # $t0 stores the base address for display
+li $t1, 0x10000 # save 256*256 pixels
+
+floating_platform2:
+sw $t3, 1160($t0) # load brown color onto stack at specific position
+addi $t0, $t0, 4 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgt $t1, 0xFFE4, floating_platform2 # repeat while there are still pixels left
 
 
 
