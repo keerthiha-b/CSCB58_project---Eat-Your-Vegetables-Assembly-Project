@@ -123,6 +123,13 @@ jal ladder_horizontal
 add $a1, $a1, $t0
 jal ladder_vertical
 
+li $a2,  0x3B73B6
+li $a1, 32
+add $a1, $a1, $t0
+jal cookie_monster
+addi $a0, $a1, 140
+jal cookie
+
 j END 
 
 
@@ -150,6 +157,37 @@ addi $a1, $a1, 128 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
 bgt $t1, 0xFFFA, ladder_vertical # repeat while there are still pixels left
 li $t1, 0x10000 # save 256*256 pixels 
+jr $ra
+
+cookie_monster:
+li $t9, 0x000000 
+sw $t9, 124($a1) #monster
+sw $a2, 128($a1)
+sw $t9, 132($a1)
+sw $a2, 248($a1)
+sw $a2, 252($a1)
+sw $a2, 256($a1)
+sw $a2, 260($a1)
+sw $a2, 264($a1)
+sw $a2, 380($a1)
+sw $a2, 384($a1)
+sw $a2, 388($a1)
+sw $a2, 508($a1)
+sw $a2, 516($a1)
+jr $ra
+
+cookie:
+li $t8, 0xA77C38
+li $t7, 0x5D1A0F
+sw $t7, 0($a0) #cookie
+sw $t8, 4($a0)
+sw $t7, 8($a0)
+sw $t8, 128($a0)
+sw $t7, 132($a0)
+sw $t8, 136($a0)
+sw $t7, 256($a0)
+sw $t8, 260($a0)
+sw $t7, 264($a0)
 jr $ra
 
 END:
