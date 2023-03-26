@@ -130,6 +130,10 @@ jal cookie_monster
 addi $a0, $a1, 140
 jal cookie
 
+li $a2, 0xFFE6C4
+li $a1, 100
+add $a1, $a1, $t0
+jal player
 j END 
 
 
@@ -189,6 +193,36 @@ sw $t7, 256($a0)
 sw $t8, 260($a0)
 sw $t7, 264($a0)
 jr $ra
+
+player:
+li $t9, 0xDBBE3D #yellow
+li $t8, 0xE70007 #red
+li $t7, 0x00AE00 #green
+li $t6, 0xFF9000 #orange
+li $t5, 0x000000 #black
+
+sw $t9, 124($a1) #player
+sw $t9, 128($a1)
+sw $t9, 132($a1)
+sw $t9, 252($a1)
+sw $a2, 256($a1)
+sw $t9, 260($a1)
+sw $a2, 380($a1)
+sw $t8, 384($a1)
+sw $a2, 388($a1)
+sw $a2, 392($a1)
+sw $t5, 512($a1)
+
+sw $t7, 136($a1) #carrot
+sw $t7, 144($a1)
+sw $t6, 396($a1)
+sw $t7, 268($a1)
+sw $t6, 524($a1)
+
+jr $ra
+
+
+
 
 END:
 li $v0, 10	# exit the program
