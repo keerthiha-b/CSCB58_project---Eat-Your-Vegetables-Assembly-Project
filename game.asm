@@ -34,7 +34,11 @@
 #
 #####################################################################
 .data
-size: .word 0x10000
+size:	.word 0x10000
+player_position:  .word 3076
+B: .word 0:0x10000
+
+.text
 
 .globl main
 main:
@@ -43,18 +47,19 @@ main:
 # - Unit width in pixels: 8
 # - Unit height in pixels: 8
 # - Display width in pixels: 256
-# - Display height in pixels: 256
+# - Display hefight in pixels: 256
 # - Base Address for Display: 0x10008000 ($gp)
 #
 .eqv BASE_ADDRESS 0x10008000
-
-.text
 
 li $t0, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
 li $t2, 0xffc0cb # $t1 stores the pink colour code for background
 li $t3, 0x9a3f1d # $t2 stores the brown colour code for platforms
 li $t4, 0x0000ff # $t3 stores the blue colour code
+la $s0, player_position		# get address of LEN
+lw $s0, 0($s0)		# load value of LEN
+la $s2, B			# $t9 holds address of array A
 
 li $a0, 0	#background
 add $a0, $a0, $t0
@@ -123,19 +128,39 @@ jal ladder_horizontal
 add $a1, $a1, $t0
 jal ladder_vertical
 
+		# store the original layout on stack
+la $a0, B	# $a0 holds address of array B
+li $a1, BASE_ADDRESS # $t0 stores the base address for display
+li $a2, 0x10000 # save 256*256 pixels
+
+
+jal load_background
+
+		# monster creation
 li $a2,  0x3B73B6
 li $a1, 32
 add $a1, $a1, $t0
 jal cookie_monster
 addi $a0, $a1, 140
 jal cookie
-
+		# initial player creation
 li $a2, 0xFFE6C4
-li $a1, 100
+add $a1, $s0, $zero
 add $a1, $a1, $t0
 jal player
 j END 
 
+
+load_background:
+lw $t8, 0($a1)
+sw $t8, 0($a0)		# write back into memory into B
+addi $a0, $a0, 4
+addi $a1, $a1, 4
+add $a2, $a2, -1
+bgt $a2, $zero, load_background # repeat while there are still pixels left
+jr $ra
+
+# OBJECT CREATIONS
 
 platforms:
 sw $a2, 0($a0) # load brown color onto stack at specific position
@@ -218,6 +243,8 @@ sw $t7, 144($a1)
 sw $t6, 396($a1)
 sw $t7, 268($a1)
 sw $t6, 524($a1)
+
+add $v1, $a1, $zero	#store address
 
 jr $ra
 
