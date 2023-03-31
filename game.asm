@@ -54,8 +54,8 @@ main:
 
 li $t0, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
-li $t2, 0xffc0cb # $t1 stores the pink colour code for background
-li $t3, 0x9a3f1d # $t2 stores the brown colour code for platforms
+li $t2, 0xffc0cb # $t2 stores the pink colour code for background
+li $t3, 0x9a3f1d # $t3 stores the brown colour code for platforms
 li $t4, 0x0000ff # $t3 stores the blue colour code
 la $s0, player_position		# get address of LEN
 lw $s0, 0($s0)		# load value of LEN
@@ -154,11 +154,11 @@ keypress:
 	addi	$a0, $zero, 60		# 60 ms
 	syscall
 	
-	lw $t3, 4($t9)
-	beq	$t3, 100, d_pressed	# if key press = 'd' branch to moveright
-	beq	$t3, 97, a_pressed	# else if key press = 'a' branch to moveLeft
-	beq	$t3, 119, w_pressed	# if key press = 'w' branch to moveUp
-	beq	$t3, 115, s_pressed	# else if key press = 's' branch to moveDown=
+	lw $t5, 4($t9)
+	beq	$t5, 100, d_pressed	# if key press = 'd' branch to moveright
+	beq	$t5, 97, a_pressed	# else if key press = 'a' branch to moveLeft
+	beq	$t5, 119, w_pressed	# if key press = 'w' branch to moveUp
+	beq	$t5, 115, s_pressed	# else if key press = 's' branch to moveDown=
 	
 w_pressed:
 	addi  $s3, $zero, -256		# s3 = make player be 256 higher
@@ -173,7 +173,7 @@ w_pressed:
 		# initial player creation
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
-	add $a1, $a1, $t0
+	addi $a1, $a1, BASE_ADDRESS
 	jal player
 	
 	j next_move 	
@@ -192,7 +192,7 @@ s_pressed:
 		# initial player creation
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
-	add $a1, $a1, $t0
+	addi $a1, $a1, BASE_ADDRESS
 	jal player
 
 	
@@ -213,7 +213,7 @@ a_pressed:
 		# initial player creation
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
-	add $a1, $a1, $t0
+	addi $a1, $a1, BASE_ADDRESS
 	jal player
 
 	
@@ -233,7 +233,7 @@ d_pressed:
 		# initial player creation
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
-	add $a1, $a1, $t0
+	addi $a1, $a1, BASE_ADDRESS
 	jal player
 
 	
@@ -241,6 +241,24 @@ d_pressed:
 
 next_move:
 	j 	game_loop		# loop back to beginning
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 clean_up:
 lw $t8, 1024($a0)
@@ -269,6 +287,7 @@ lw $t8, 2092($a0)
 sw $t8, 2092($a1)		# write back into memory into B
 lw $t8, 1328($a0)
 sw $t8, 1328($a1)		# write back into memory into B
+
 jr $ra
 
 clean_down:
@@ -558,7 +577,6 @@ sw $t7, 1068($a1) #leaf
 add $v1, $a1, $zero	#store address
 
 jr $ra
-
 
 
 END:
