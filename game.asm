@@ -35,7 +35,7 @@
 #####################################################################
 .data
 size:	.word 0x10000
-player_position:  .word 12544
+player_position:  .word 12552
 B: .word 0:65536
 
 .text
@@ -57,6 +57,7 @@ li $t1, 0x10000 # save 256*256 pixels
 li $t2, 0xffc0cb # $t2 stores the pink colour code for background
 li $t3, 0x9a3f1d # $t3 stores the brown colour code for platforms
 li $t4, 0x0000ff # $t3 stores the blue colour code
+li $s4, 0x37969D	#ladder color
 la $s0, player_position		# get address of LEN
 lw $s0, 0($s0)		# load value of LEN
 la $s2, B			# $t9 holds address of array A
@@ -73,27 +74,63 @@ li $a1, 0
 li $a2,  0x9a3f1d
 jal platforms
 
-li $a0, 11796	#platform 1
+li $a0, 0	#upper border
+add $a0, $a0, $t0
+li $a1, 65472
+li $a2,  0x9a3f1d
+jal platforms
+li $a0, 256	
+add $a0, $a0, $t0
+li $a1, 65472
+li $a2,  0xffc0cb
+jal platforms
+
+li $a0, 1024	#upper second border
+add $a0, $a0, $t0
+li $a1, 65472
+li $a2,  0x9a3f1d
+jal platforms
+li $a0, 1280	
+add $a0, $a0, $t0
+li $a1, 65472
+li $a2,  0xffc0cb
+jal platforms
+
+li $a0, 0	#side border
+add $a0, $a0, $t0
+li $a1, 65472
+li $a2,  0x9a3f1d
+jal side_border
+
+li $a0, 252	#side border
+add $a0, $a0, $t0
+li $a1, 65472
+li $a2,  0x9a3f1d
+jal side_border
+
+li $a2,  0x9a3f1d
+li $a0, 12052	#platform 1
 add $a0, $a0, $t0
 li $a1, 65480
 jal platforms
 
-li $a0, 8752	#platform 2
+li $a0, 9256	#platform 2
 add $a0, $a0, $t0
-li $a1, 65492
+li $a1, 65491
 jal platforms
 
-li $a0, 5676	#platform 3
+li $a0, 6440	#platform 3
 add $a0, $a0, $t0
-li $a1, 65490
+li $a1, 65491
 jal platforms
 
-li $a0, 2580	#platform 4
+li $a0, 3604	#platform 4
 add $a0, $a0, $t0
 li $a1, 65480
 jal platforms
 
-li $a0, 12672	#ladder 1
+li $a2, 0x37969D
+li $a0, 12416	#ladder 1
 subi $a1, $a0, 256
 add $a0, $a0, $t0
 jal ladder_horizontal
@@ -114,14 +151,14 @@ jal ladder_horizontal
 add $a1, $a1, $t0
 jal ladder_vertical
 
-li $a0, 6528	#ladder 4
+li $a0, 6784	#ladder 4
 subi $a1, $a0, 256
 add $a0, $a0, $t0
 jal ladder_horizontal
 add $a1, $a1, $t0
 jal ladder_vertical
 
-li $a0, 3508	#ladder 5
+li $a0, 4020	#ladder 5
 subi $a1, $a0, 256
 add $a0, $a0, $t0
 jal ladder_horizontal
@@ -159,8 +196,10 @@ keypress:
 	beq	$t5, 97, a_pressed	# else if key press = 'a' branch to moveLeft
 	beq	$t5, 119, w_pressed	# if key press = 'w' branch to moveUp
 	beq	$t5, 115, s_pressed	# else if key press = 's' branch to moveDown=
+	beq	$t5, 112, p_pressed	# restart game if key press = 'p'
 	
 w_pressed:
+	
 	addi  $s3, $zero, -256		# s3 = make player be 256 higher
 	
 	la $a0, B	# $a0 holds address of array B
@@ -168,14 +207,24 @@ w_pressed:
 	add $a1, $a1, $s0  # $t0 stores the base address for display
 	add $a0, $a0, $s0  # $t0 stores the base address for display
 
-	add $s0, $s3, $s0		# update player position
+	add $a3, $s0, $s3
+	la $a2, B
+	jal check_platform_above
+	beq $v1, 1, next_move
 	
+	add $s0, $s3, $s0		# update player position
+
+
 	jal clean_up
 		# initial player creation
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
 	addi $a1, $a1, BASE_ADDRESS
 	jal player
+	
+	#add $a3, $s0, $zero
+	#la $a2, B
+	#jal check_flying
 	
 	j next_move 	
 
@@ -186,6 +235,11 @@ s_pressed:
 	li $a1, BASE_ADDRESS # $t0 stores the base address for display
 	add $a1, $a1, $s0  # $t0 stores the base address for display
 	add $a0, $a0, $s0  # $t0 stores the base address for display
+	
+	add $a3, $s0, $s3
+	la $a2, B
+	jal check_platform_down
+	beq $v1, 1, next_move
 	
 	add $s0, $s3, $s0		# update player position
 
@@ -209,6 +263,11 @@ a_pressed:
 	add $a1, $a1, $s0  # $t0 stores the base address for display
 	add $a0, $a0, $s0  # $t0 stores the base address for display
 	
+	add $a3, $s0, $s3
+	la $a2, B
+	jal check_platform_left
+	beq $v1, 1, next_move
+	
 	add $s0, $s3, $s0		# update player position
 	
 	
@@ -230,6 +289,11 @@ d_pressed:
 	add $a1, $a1, $s0  # $t0 stores the base address for display
 	add $a0, $a0, $s0  # $t0 stores the base address for display
 	
+	add $a3, $s0, $s3
+	la $a2, B
+	jal check_platform_right
+	beq $v1, 1, next_move
+	
 	add $s0, $s3, $s0		# update player position
 
 	
@@ -242,6 +306,26 @@ d_pressed:
 
 	
 	j next_move 
+	
+p_pressed:
+		# store the original layout on stack
+la $a0, B	# $a0 holds address of array B
+li $a1, BASE_ADDRESS # $t0 stores the base address for display
+li $a2, 0x10000 # save 256*256 pixels
+
+jal clear_background
+addi $s0, $zero, 12544
+
+		# initial player creation
+li $a2, 0xFFE6C4
+add $a1, $s0, $zero
+addi $a1, $a1, BASE_ADDRESS
+jal player
+
+j next_move
+
+
+
 
 next_move:
 	j 	game_loop		# loop back to beginning
@@ -255,14 +339,137 @@ next_move:
 
 
 
+check_flying:
+add $t8, $a2, $a3
+lw $t8, 2316($t8)
+beq $t8, 0xffc0cb, gravity
+lw $t8, 2324($t8)
+beq $t8, 0xffc0cb, gravity
+
+jr $ra
 
 
+gravity:
+addi $s3, $zero, 256		# s3 = make player be 256 higher
+		
+la $a0, B	# $a0 holds address of array B
+li $a1, BASE_ADDRESS # $t0 stores the base address for display
+add $a1, $a1, $s0  # $t0 stores the base address for display
+add $a0, $a0, $s0  # $t0 stores the base address for display
+	
+add $s0, $s3, $s0		# update player position
+
+jal clean_down
+	
+		# initial player creation
+li $a2, 0xFFE6C4
+add $a1, $s0, $zero
+addi $a1, $a1, BASE_ADDRESS
+jal player
+
+j check_flying
 
 
+check_platform_above:
+add $t8, $a2, $a3
+lw $t8, 4($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 8($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 12($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 16($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 20($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 24($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 28($t8)
+beq $t8, 0x9a3f1d, yes_platform
+addi $v1, $zero, 0
+jr $ra
 
+check_platform_left:
+add $t8, $a2, $a3
+lw $t8, 0($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 256($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 512($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 768($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 1024($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 1280($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 1536($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 1792($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 2048($t8)
+beq $t8, 0x9a3f1d, yes_platform
+addi $v1, $zero, 0
+jr $ra
 
+check_platform_right:
+add $t8, $a2, $a3
+lw $t8, 32($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 288($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 544($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 800($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 1312($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 1568($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 1824($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 2080($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 1328($t8)
+beq $t8, 0x9a3f1d, yes_platform
+addi $v1, $zero, 0
+jr $ra
 
+check_platform_down:
+add $t8, $a2, $a3
+lw $t8, 2060($t8)
+beq $t8, 0x9a3f1d, yes_platform
+add $t8, $a2, $a3
+lw $t8, 2068($t8)
+beq $t8, 0x9a3f1d, yes_platform
+addi $v1, $zero, 0
+jr $ra
 
+yes_platform:
+addi $v1, $zero, 1
+jr $ra
 
 clean_up:
 lw $t8, 1024($a0)
@@ -414,6 +621,13 @@ jr $ra
 
 
 # OBJECT CREATIONS
+side_border:
+sw $a2, 0($a0) # load brown color onto stack at specific position
+addi $a0, $a0, 256 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgt $t1, $a1, side_border # repeat while there are still pixels left
+li $t1, 0x10000 # save 256*256 pixels 
+jr $ra
 
 platforms:
 sw $a2, 0($a0) # load brown color onto stack at specific position
@@ -425,21 +639,22 @@ li $t1, 0x10000 # save 256*256 pixels
 jr $ra
 
 ladder_horizontal:
+sw $a2, -256($a0) # load brown color onto stack at top step of ladder
 sw $a2, 0($a0) # load brown color onto stack at top step of ladder
 sw $a2, 768($a0) # bottom step of ladder
 sw $a2, 1536($a0) # bottom step of ladder
 addi $a0, $a0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 65531, ladder_horizontal # repeat while there are still pixels left
+bgt $t1, 65528, ladder_horizontal # repeat while there are still pixels left
 li $t1, 0x10000 # save 256*256 pixels 
 jr $ra
 
 ladder_vertical:
 sw $a2, 0($a1) # load brown color onto stack at specific position - left side of ladder
-sw $a2, 20($a1) # right side of ladder
+sw $a2, 28($a1) # right side of ladder
 addi $a1, $a1, 256 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 65524, ladder_vertical # repeat while there are still pixels left
+bgt $t1, 65525, ladder_vertical # repeat while there are still pixels left
 li $t1, 0x10000 # save 256*256 pixels 
 jr $ra
 
@@ -564,7 +779,7 @@ sw $t6, 1324($a1) #carrot
 sw $t6, 1328($a1) #carrot
 sw $t6, 1572($a1) #carrot
 sw $t6, 1576($a1) #carrot
-sw $t6, 1580($a1) #carrotcarrot
+sw $t6, 1580($a1) #carrot
 sw $t6, 1832($a1) #carrot
 sw $t6, 1828($a1) #carrot
 sw $t6, 1832($a1) #carrot
