@@ -36,6 +36,7 @@
 .data
 size:	.word 0x10000
 player_position:  .word 12552
+monster_position: .word 1300
 B: .word 0:65536
 
 .text
@@ -56,10 +57,12 @@ li $t0, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
 li $t2, 0xffc0cb # $t2 stores the pink colour code for background
 li $t3, 0x9a3f1d # $t3 stores the brown colour code for platforms
-li $t4, 0x0000ff # $t3 stores the blue colour code
+li $t4, 0x4587C0 # $t3 stores the blue colour monster code
 li $s4, 0x37969D	#ladder color
-la $s0, player_position		# get address of LEN
-lw $s0, 0($s0)		# load value of LEN
+la $s0, player_position		# get address of player
+lw $s0, 0($s0)		# load value of player
+la $s6, monster_position		# get address of monster
+lw $s6, 0($s6)		# load value of monster
 la $s2, B			# $t9 holds address of array A
 
 li $a0, 0	#background
@@ -178,6 +181,12 @@ li $a2, 0xFFE6C4
 add $a1, $s0, $zero
 add $a1, $a1, $t0
 jal player
+
+		# initial cookie monster creation
+li $a2, 0x4587C0
+add $a1, $s6, $zero
+add $a1, $a1, $t0
+jal cookie_monster
 
 game_loop:
 
@@ -660,19 +669,61 @@ jr $ra
 
 cookie_monster:
 li $t9, 0x000000 
-sw $t9, 124($a1) #monster
-sw $a2, 128($a1)
-sw $t9, 132($a1)
-sw $a2, 248($a1)
-sw $a2, 252($a1)
+sw $t9, 0($a1)	#eyes
+sw $t9, 4($a1)
+sw $t9, 256($a1)
+sw $t9, 260($a1)
+sw $t9, 12($a1)
+sw $t9, 16($a1)
+sw $t9, 268($a1)
+sw $t9, 272($a1)
+sw $a2, 8($a1)	#head
+sw $a2, 264($a1)
+sw $a2, 512($a1)
+sw $a2, 516($a1)
+sw $a2, 520($a1)
+sw $a2, 524($a1)
+sw $a2, 528($a1)
+sw $a2, 768($a1)
+sw $a2, 772($a1)
+sw $a2, 776($a1)
+sw $a2, 780($a1)
+sw $a2, 784($a1)
+addi $a1, $a1, 1020
+sw $a2, 0($a1)	#body
+sw $a2, 4($a1)
+sw $a2, -4($a1)
+sw $a2, 28($a1)
 sw $a2, 256($a1)
 sw $a2, 260($a1)
+sw $a2, 12($a1)
+sw $a2, 16($a1)
+sw $a2, 268($a1)
+sw $a2, 272($a1)
+sw $a2, 8($a1)	
 sw $a2, 264($a1)
-sw $a2, 380($a1)
-sw $a2, 384($a1)
-sw $a2, 388($a1)
-sw $a2, 508($a1)
+sw $a2, 512($a1)
 sw $a2, 516($a1)
+sw $a2, 520($a1)
+sw $a2, 524($a1)
+sw $a2, 528($a1)
+sw $a2, 768($a1)
+sw $a2, 772($a1)
+sw $a2, 776($a1)
+sw $a2, 780($a1)
+sw $a2, 784($a1)
+sw $a2, 20($a1)
+sw $a2, 24($a1)
+sw $a2, 276($a1)
+sw $a2, 280($a1)
+sw $a2, 532($a1)
+sw $a2, 536($a1)
+sw $a2, 792($a1)
+sw $a2, 788($a1)
+sw $a2, 1028($a1)
+sw $a2, 1044($a1)
+
+
 jr $ra
 
 cookie:
