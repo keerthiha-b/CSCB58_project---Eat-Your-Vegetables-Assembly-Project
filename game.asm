@@ -142,9 +142,233 @@ add $a1, $s0, $zero
 add $a1, $a1, $t0
 jal player
 
+game_loop:
 
-j END
+	li $t9, 0xffff0000		# get keypress from keyboard input
+	lw $t8, 0($t9)
+	beq $t8, 1, keypress
+	j game_loop
 
+keypress:	
+	li	$v0, 32			# syscall sleep
+	addi	$a0, $zero, 60		# 60 ms
+	syscall
+	
+	lw $t3, 4($t9)
+	beq	$t3, 100, d_pressed	# if key press = 'd' branch to moveright
+	beq	$t3, 97, a_pressed	# else if key press = 'a' branch to moveLeft
+	beq	$t3, 119, w_pressed	# if key press = 'w' branch to moveUp
+	beq	$t3, 115, s_pressed	# else if key press = 's' branch to moveDown=
+	
+w_pressed:
+	addi  $s3, $zero, -256		# s3 = make player be 256 higher
+	
+	la $a0, B	# $a0 holds address of array B
+	add $a1, $zero, $s0  # $t0 stores the base address for display
+	addi $a1, $a1, BASE_ADDRESS
+
+	add $s0, $s3, $s0		# update player position
+	
+	jal clean_up
+		# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	add $a1, $a1, $t0
+	jal player
+	
+	j next_move 	
+
+s_pressed:
+	addi $s3, $zero, 256		# s3 = make player be 256 higher
+		
+	la $a0, B	# $a0 holds address of array B
+	add $a1, $zero, $s0  # $t0 stores the base address for display
+	addi $a1, $a1, BASE_ADDRESS
+	
+	add $s0, $s3, $s0		# update player position
+
+	jal clean_down
+	
+		# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	add $a1, $a1, $t0
+	jal player
+
+	
+	j next_move 
+	
+a_pressed:
+	addi $s3, $zero, -4		# s3 = make player be 256 higher
+	
+		
+	la $a0, B	# $a0 holds address of array B
+	add $a1, $zero, $s0  # $t0 stores the base address for display
+	addi $a1, $a1, BASE_ADDRESS
+	
+	add $s0, $s3, $s0		# update player position
+	
+	
+	jal clean_left
+		# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	add $a1, $a1, $t0
+	jal player
+
+	
+	j next_move 
+	
+d_pressed:
+	addi  $s3, $zero, 4		# s3 = make player be 256 higher
+		
+	la $a0, B	# $a0 holds address of array B
+	add $a1, $zero, $s0  # $t0 stores the base address for display
+	addi $a1, $a1, BASE_ADDRESS
+	
+	add $s0, $s3, $s0		# update player position
+
+	
+	jal clean_right
+		# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	add $a1, $a1, $t0
+	jal player
+
+	
+	j next_move 
+
+next_move:
+	j 	game_loop		# loop back to beginning
+
+clean_up:
+lw $t8, 1024($a0)
+sw $t8, 1024($a1)		# write back into memory into B
+lw $t8, 1284($a0)
+sw $t8, 1284($a1)		# write back into memory into B
+lw $t8, 1800($a0)
+sw $t8, 1800($a1)		# write back into memory into B
+lw $t8, 2060($a0)
+sw $t8, 2060($a1)		# write back into memory into B
+lw $t8, 1808($a0)
+sw $t8, 1808($a1)		# write back into memory into B
+lw $t8, 2068($a0)
+sw $t8, 2068($a1)		# write back into memory into B
+lw $t8, 1816($a0)
+sw $t8, 1816($a1)		# write back into memory into B
+lw $t8, 1308($a0)
+sw $t8, 1308($a1)		# write back into memory into B
+lw $t8, 1312($a0)
+sw $t8, 1312($a1)		# write back into memory into B
+lw $t8, 2084($a0)
+sw $t8, 2084($a1)		# write back into memory into B
+lw $t8, 2088($a0)
+sw $t8, 2088($a1)		# write back into memory into B
+lw $t8, 2092($a0)
+sw $t8, 2092($a1)		# write back into memory into B
+lw $t8, 1328($a0)
+sw $t8, 1328($a1)		# write back into memory into B
+jr $ra
+
+clean_down:
+lw $t8, 256($a0)
+sw $t8, 256($a1)		# write back into memory into B
+lw $t8, 4($a0)
+sw $t8, 4($a1)		# write back into memory into B
+lw $t8, 8($a0)
+sw $t8, 8($a1)		# write back into memory into B
+lw $t8, 12($a0)
+sw $t8, 12($a1)		# write back into memory into B
+lw $t8, 16($a0)
+sw $t8, 16($a1)		# write back into memory into B
+lw $t8, 20($a0)
+sw $t8, 20($a1)		# write back into memory into B
+lw $t8, 24($a0)
+sw $t8, 24($a1)		# write back into memory into B
+lw $t8, 28($a0)
+sw $t8, 28($a1)		# write back into memory into B
+lw $t8, 288($a0)
+sw $t8, 288($a1)		# write back into memory into B
+lw $t8, 548($a0)
+sw $t8, 548($a1)		# write back into memory into B
+lw $t8, 556($a0)
+sw $t8, 556($a1)		# write back into memory into B
+lw $t8, 1064($a0)
+sw $t8, 1064($a1)		# write back into memory into B
+lw $t8, 812($a0)
+sw $t8, 812($a1)		# write back into memory into B
+lw $t8, 804($a0)
+sw $t8, 804($a1)		# write back into memory into B
+lw $t8, 1328($a0)
+sw $t8, 1328($a1)		# write back into memory into B
+jr $ra
+
+clean_left:
+lw $t8, 28($a0)
+sw $t8, 28($a1)		# write back into memory into B
+lw $t8, 288($a0)
+sw $t8, 288($a1)		# write back into memory into B
+lw $t8, 544($a0)
+sw $t8, 544($a1)		# write back into memory into B
+lw $t8, 812($a0)
+sw $t8, 812($a1)		# write back into memory into B
+lw $t8, 804($a0)
+sw $t8, 804($a1)		# write back into memory into B
+lw $t8, 1068($a0)
+sw $t8, 1068($a1)		# write back into memory into B
+lw $t8, 1328($a0)
+sw $t8, 1328($a1)		# write back into memory into B
+lw $t8, 1580($a0)
+sw $t8, 1580($a1)		# write back into memory into B
+lw $t8, 1836($a0)
+sw $t8, 1836($a1)		# write back into memory into B
+lw $t8, 2092($a0)
+sw $t8, 2092($a1)		# write back into memory into B
+
+clean_right:
+lw $t8, 4($a0)
+sw $t8, 4($a1)		# write back into memory into B
+lw $t8, 256($a0)
+sw $t8, 256($a1)		# write back into memory into B
+lw $t8, 512($a0)
+sw $t8, 512($a1)		# write back into memory into B
+lw $t8, 768($a0)
+sw $t8, 768($a1)		# write back into memory into B
+lw $t8, 1024($a0)
+sw $t8, 1024($a1)		# write back into memory into B
+lw $t8, 2068($a0)
+sw $t8, 2068($a1)		# write back into memory into B
+lw $t8, 2060($a0)
+sw $t8, 2060($a1)		# write back into memory into B
+lw $t8, 2068($a0)
+sw $t8, 2068($a1)		# write back into memory into B
+lw $t8, 1816($a0)
+sw $t8, 1816($a1)		# write back into memory into B
+lw $t8, 1560($a0)
+sw $t8, 1560($a1)		# write back into memory into B
+
+lw $t8, 1284($a0)
+sw $t8, 1284($a1)		# write back into memory into B
+lw $t8, 1544($a0)
+sw $t8, 1544($a1)		# write back into memory into B
+lw $t8, 1800($a0)
+sw $t8, 1800($a1)		# write back into memory into B
+lw $t8, 2060($a0)
+sw $t8, 2060($a1)		# write back into memory into B
+lw $t8, 2068($a0)
+sw $t8, 2068($a1)		# write back into memory into B
+
+lw $t8, 2084($a0)
+sw $t8, 2084($a1)		# write back into memory into B
+lw $t8, 1828($a0)
+sw $t8, 1828($a1)		# write back into memory into B
+lw $t8, 1572($a0)
+sw $t8, 1572($a1)		# write back into memory into B
+lw $t8, 812($a0)
+sw $t8, 812($a1)		# write back into memory into B
+
+jr $ra
 
 clear_background:
 lw $t8, 0($a0)
@@ -235,7 +459,7 @@ li $t6, 0xFF9000 #orange
 li $t5, 0x000000 #black
 
 
-sw $t9, 4($a1) #player
+sw $t9, 4($a1) #player hair
 sw $t9, 8($a1) #player
 sw $t9, 12($a1) #player
 sw $t9, 16($a1) #player
@@ -328,6 +552,8 @@ sw $t6, 2092($a1) #carrot
 sw $t7, 1064($a1) #leaf
 sw $t7, 804($a1) #leaf
 sw $t7, 812($a1) #leaf
+sw $t7, 1060($a1) #leaf
+sw $t7, 1068($a1) #leaf
 
 add $v1, $a1, $zero	#store address
 
