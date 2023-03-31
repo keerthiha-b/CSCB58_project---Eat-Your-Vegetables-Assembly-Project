@@ -164,8 +164,9 @@ w_pressed:
 	addi  $s3, $zero, -256		# s3 = make player be 256 higher
 	
 	la $a0, B	# $a0 holds address of array B
-	add $a1, $zero, $s0  # $t0 stores the base address for display
-	addi $a1, $a1, BASE_ADDRESS
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	add $a1, $a1, $s0  # $t0 stores the base address for display
+	add $a0, $a0, $s0  # $t0 stores the base address for display
 
 	add $s0, $s3, $s0		# update player position
 	
@@ -182,8 +183,9 @@ s_pressed:
 	addi $s3, $zero, 256		# s3 = make player be 256 higher
 		
 	la $a0, B	# $a0 holds address of array B
-	add $a1, $zero, $s0  # $t0 stores the base address for display
-	addi $a1, $a1, BASE_ADDRESS
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	add $a1, $a1, $s0  # $t0 stores the base address for display
+	add $a0, $a0, $s0  # $t0 stores the base address for display
 	
 	add $s0, $s3, $s0		# update player position
 
@@ -203,8 +205,9 @@ a_pressed:
 	
 		
 	la $a0, B	# $a0 holds address of array B
-	add $a1, $zero, $s0  # $t0 stores the base address for display
-	addi $a1, $a1, BASE_ADDRESS
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	add $a1, $a1, $s0  # $t0 stores the base address for display
+	add $a0, $a0, $s0  # $t0 stores the base address for display
 	
 	add $s0, $s3, $s0		# update player position
 	
@@ -221,10 +224,11 @@ a_pressed:
 	
 d_pressed:
 	addi  $s3, $zero, 4		# s3 = make player be 256 higher
-		
+
 	la $a0, B	# $a0 holds address of array B
-	add $a1, $zero, $s0  # $t0 stores the base address for display
-	addi $a1, $a1, BASE_ADDRESS
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	add $a1, $a1, $s0  # $t0 stores the base address for display
+	add $a0, $a0, $s0  # $t0 stores the base address for display
 	
 	add $s0, $s3, $s0		# update player position
 
