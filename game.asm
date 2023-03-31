@@ -35,8 +35,8 @@
 #####################################################################
 .data
 size:	.word 0x10000
-player_position:  .word 3076
-B: .word 0:0x10000
+player_position:  .word 12544
+B: .word 0:65536
 
 .text
 
@@ -67,62 +67,62 @@ li $a1, 0
 li $a2, 0xffc0cb
 jal platforms
 
-li $a0, 3712	#floor
+li $a0, 14848	#floor
 add $a0, $a0, $t0
 li $a1, 0
 li $a2,  0x9a3f1d
 jal platforms
 
-li $a0, 2968	#platform 1
+li $a0, 11796	#platform 1
 add $a0, $a0, $t0
-li $a1, 0xFFEC
+li $a1, 65480
 jal platforms
 
-li $a0, 2184	#platform 2
+li $a0, 8752	#platform 2
 add $a0, $a0, $t0
-li $a1, 0xFFE4
+li $a1, 65492
 jal platforms
 
-li $a0, 1416	#platform 3
+li $a0, 5676	#platform 3
 add $a0, $a0, $t0
-li $a1, 0xFFE4
+li $a1, 65490
 jal platforms
 
-li $a0, 664	#platform 4
+li $a0, 2580	#platform 4
 add $a0, $a0, $t0
-li $a1, 0xFFEC
+li $a1, 65480
 jal platforms
 
-li $a0, 3256	#ladder 1
-subi $a1, $a0, 128
+li $a0, 12672	#ladder 1
+subi $a1, $a0, 256
 add $a0, $a0, $t0
 jal ladder_horizontal
 add $a1, $a1, $t0
 jal ladder_vertical
 
-li $a0, 2456	#ladder 2
-subi $a1, $a0, 128
+li $a0, 9548	#ladder 2
+subi $a1, $a0, 256
 add $a0, $a0, $t0
 jal ladder_horizontal
 add $a1, $a1, $t0
 jal ladder_vertical
 
-li $a0, 2520	#ladder 3
-subi $a1, $a0, 128
+li $a0, 9652	#ladder 3
+subi $a1, $a0, 256
 add $a0, $a0, $t0
 jal ladder_horizontal
 add $a1, $a1, $t0
 jal ladder_vertical
 
-li $a0, 1720	#ladder 3
-subi $a1, $a0, 128
+li $a0, 6528	#ladder 4
+subi $a1, $a0, 256
 add $a0, $a0, $t0
 jal ladder_horizontal
 add $a1, $a1, $t0
 jal ladder_vertical
 
-li $a0, 984	#ladder 4
-subi $a1, $a0, 128
+li $a0, 3508	#ladder 5
+subi $a1, $a0, 256
 add $a0, $a0, $t0
 jal ladder_horizontal
 add $a1, $a1, $t0
@@ -133,22 +133,27 @@ la $a0, B	# $a0 holds address of array B
 li $a1, BASE_ADDRESS # $t0 stores the base address for display
 li $a2, 0x10000 # save 256*256 pixels
 
-
 jal load_background
 
-		# monster creation
-li $a2,  0x3B73B6
-li $a1, 32
-add $a1, $a1, $t0
-jal cookie_monster
-addi $a0, $a1, 140
-jal cookie
+
 		# initial player creation
 li $a2, 0xFFE6C4
 add $a1, $s0, $zero
 add $a1, $a1, $t0
 jal player
-j END 
+
+
+j END
+
+
+clear_background:
+lw $t8, 0($a0)
+sw $t8, 0($a1)		# write back into memory into B
+addi $a0, $a0, 4
+addi $a1, $a1, 4
+add $a2, $a2, -1
+bgt $a2, $zero, clear_background # repeat while there are still pixels left
+jr $ra
 
 
 load_background:
@@ -160,10 +165,12 @@ add $a2, $a2, -1
 bgt $a2, $zero, load_background # repeat while there are still pixels left
 jr $ra
 
+
 # OBJECT CREATIONS
 
 platforms:
 sw $a2, 0($a0) # load brown color onto stack at specific position
+sw $a2, 256($a0) # load brown color onto stack at specific position
 addi $a0, $a0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
 bgt $t1, $a1, platforms # repeat while there are still pixels left
@@ -172,19 +179,20 @@ jr $ra
 
 ladder_horizontal:
 sw $a2, 0($a0) # load brown color onto stack at top step of ladder
-sw $a2, 256($a0) # bottom step of ladder
+sw $a2, 768($a0) # bottom step of ladder
+sw $a2, 1536($a0) # bottom step of ladder
 addi $a0, $a0, 4 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 0xFFFD, ladder_horizontal # repeat while there are still pixels left
+bgt $t1, 65531, ladder_horizontal # repeat while there are still pixels left
 li $t1, 0x10000 # save 256*256 pixels 
 jr $ra
 
 ladder_vertical:
 sw $a2, 0($a1) # load brown color onto stack at specific position - left side of ladder
-sw $a2, 12($a1) # right side of ladder
-addi $a1, $a1, 128 # go to next address to color
+sw $a2, 20($a1) # right side of ladder
+addi $a1, $a1, 256 # go to next address to color
 addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, 0xFFFA, ladder_vertical # repeat while there are still pixels left
+bgt $t1, 65524, ladder_vertical # repeat while there are still pixels left
 li $t1, 0x10000 # save 256*256 pixels 
 jr $ra
 
@@ -226,23 +234,100 @@ li $t7, 0x00AE00 #green
 li $t6, 0xFF9000 #orange
 li $t5, 0x000000 #black
 
-sw $t9, 124($a1) #player
-sw $t9, 128($a1)
-sw $t9, 132($a1)
-sw $t9, 252($a1)
-sw $a2, 256($a1)
-sw $t9, 260($a1)
-sw $a2, 380($a1)
-sw $t8, 384($a1)
-sw $a2, 388($a1)
-sw $a2, 392($a1)
-sw $t5, 512($a1)
 
-sw $t7, 136($a1) #carrot
-sw $t7, 144($a1)
-sw $t6, 396($a1)
-sw $t7, 268($a1)
-sw $t6, 524($a1)
+sw $t9, 4($a1) #player
+sw $t9, 8($a1) #player
+sw $t9, 12($a1) #player
+sw $t9, 16($a1) #player
+sw $t9, 20($a1) #player
+sw $t9, 24($a1) #player
+sw $t9, 28($a1) #player
+
+sw $t9, 256($a1) #player hair
+sw $t9, 260($a1) #player
+sw $t9, 264($a1) #player
+sw $t9, 268($a1) #player
+sw $t9, 272($a1) #player
+sw $t9, 276($a1) #player
+sw $t9, 280($a1) #player
+sw $t9, 284($a1) #player
+sw $t9, 288($a1) #player
+sw $t9, 512($a1) #player
+sw $t9, 516($a1) #player
+sw $t9, 768($a1) #player
+sw $t9, 772($a1) #player
+sw $t9, 1024($a1) #player
+sw $t9, 1028($a1) #player
+sw $t9, 540($a1) #player
+sw $t9, 544($a1) #player
+sw $t9, 796($a1) #player
+sw $t9, 800($a1) #player
+sw $t9, 1052($a1) #player
+sw $t9, 1056($a1) #player
+
+sw $a2, 520($a1) #skin
+sw $a2, 524($a1)
+sw $a2, 528($a1)
+sw $a2, 532($a1)
+sw $a2, 536($a1)
+sw $a2, 776($a1)
+sw $a2, 780($a1)
+sw $a2, 784($a1)
+sw $a2, 788($a1)
+sw $a2, 792($a1)
+sw $a2, 1032($a1)
+sw $a2, 1036($a1)
+sw $a2, 1040($a1)
+sw $a2, 1044($a1)
+sw $a2, 1048($a1)
+
+sw $t5, 780($a1) # eyes
+sw $t5, 788($a1)
+
+sw $t8, 1288($a1) #upper body
+sw $t8, 1544($a1) #body
+sw $t8, 1800($a1) #body
+sw $t8, 1292($a1) #body
+sw $t8, 1548($a1) #body
+sw $t8, 1804($a1) #body
+sw $t8, 1296($a1) #body
+sw $t8, 1552($a1) #body
+sw $t8, 1808($a1) #body
+sw $t8, 1300($a1) #body
+sw $t8, 1556($a1) #body
+sw $t8, 1812($a1) #body
+sw $t8, 1304($a1) #body
+sw $t8, 1560($a1) #body
+sw $t8, 1816($a1) #body
+
+sw $t8, 1556($a1) #body legs
+sw $t8, 1812($a1) #body
+sw $t8, 2068($a1) #body
+sw $t8, 1548($a1) #body
+sw $t8, 1804($a1) #body
+sw $t8, 2060($a1) #body
+
+sw $t8, 1284($a1) #body arms
+sw $t8, 1308($a1) #body
+
+sw $t6, 1312($a1) #carrot
+sw $t6, 1316($a1) #carrot
+sw $t6, 1320($a1) #carrot
+sw $t6, 1324($a1) #carrot
+sw $t6, 1328($a1) #carrot
+sw $t6, 1572($a1) #carrot
+sw $t6, 1576($a1) #carrot
+sw $t6, 1580($a1) #carrotcarrot
+sw $t6, 1832($a1) #carrot
+sw $t6, 1828($a1) #carrot
+sw $t6, 1832($a1) #carrot
+sw $t6, 1836($a1) #carrot
+sw $t6, 2084($a1) #carrot
+sw $t6, 2088($a1) #carrot
+sw $t6, 2092($a1) #carrot
+sw $t7, 1064($a1) #leaf
+sw $t7, 804($a1) #leaf
+sw $t7, 812($a1) #leaf
 
 add $v1, $a1, $zero	#store address
 
@@ -250,23 +335,9 @@ jr $ra
 
 
 
-
 END:
 li $v0, 10	# exit the program
 syscall
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
