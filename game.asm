@@ -187,6 +187,9 @@ li $a2, 0x4587C0
 add $a1, $s6, $zero
 add $a1, $a1, $t0
 jal cookie_monster
+addi $a0, $a1, 284
+jal cookie
+
 
 game_loop:
 
@@ -722,22 +725,34 @@ sw $a2, 792($a1)
 sw $a2, 788($a1)
 sw $a2, 1028($a1)
 sw $a2, 1044($a1)
-
+subi $a1, $a1, 1020
 
 jr $ra
 
 cookie:
 li $t8, 0xA77C38
 li $t7, 0x5D1A0F
-sw $t7, 0($a0) #cookie
 sw $t8, 4($a0)
-sw $t7, 8($a0)
-sw $t8, 128($a0)
-sw $t7, 132($a0)
-sw $t8, 136($a0)
-sw $t7, 256($a0)
-sw $t8, 260($a0)
-sw $t7, 264($a0)
+sw $t8, 8($a0)
+sw $t7, 12($a0)
+sw $t8, 256($a0) #cookie
+sw $t7, 260($a0)
+sw $t8, 264($a0)
+sw $t8, 268($a0)
+sw $t7, 272($a0)
+sw $t8, 512($a0) #cookie
+sw $t8, 516($a0)
+sw $t8, 520($a0)
+sw $t7, 524($a0)
+sw $t8, 528($a0)
+sw $t7, 768($a0) #cookie
+sw $t8, 772($a0)
+sw $t7, 776($a0)
+sw $t8, 780($a0)
+sw $t8, 784($a0)
+sw $t8, 1028($a0)
+sw $t8, 1032($a0)
+sw $t7, 1036($a0)
 jr $ra
 
 player:
