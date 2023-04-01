@@ -196,6 +196,18 @@ li $a0, 10652
 addi $a0, $a0, BASE_ADDRESS
 jal cookie
 
+li $a1, 464	#mini carrot
+addi $a1, $a1, BASE_ADDRESS
+jal mini_carrot
+
+li $a1, 476
+addi $a1, $a1, BASE_ADDRESS
+jal mini_carrot
+
+li $a1, 488
+addi $a1, $a1, BASE_ADDRESS
+jal mini_carrot
+
 		# store the original layout on stack
 la $a0, B	# $a0 holds address of array B
 li $a1, BASE_ADDRESS # $t0 stores the base address for display
@@ -380,6 +392,17 @@ next_move:
 jal check_monster_player_location
 j 	game_loop		# loop back to beginning
 
+check_cookie_player_location:
+beq $s6, $s0, take_a_life
+add $t8, $zero, $s6
+add $t7, $zero, $s0
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+
+jr $ra
+
 
 check_monster_player_location:
 #approaching her left
@@ -479,6 +502,46 @@ beq $t6, $t8, take_a_life
 addi $t7, $t7, 4
 beq $t8, $t7, take_a_life
 beq $t6, $t8, take_a_life
+# along right side of monster
+beq $s6, $s0, take_a_life
+add $t8, $zero, $s6
+add $t7, $zero, $s0
+addi $t8, $t8, 288
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+# along left side of monster
+beq $s6, $s0, take_a_life		#TEST THIS SIDE LATER
+add $t8, $zero, $s6
+add $t7, $zero, $s0
+addi $t8, $t8, -8
+addi $t7, $t7, -44
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 256
+beq $t8, $t7, take_a_life
 
 jr $ra
 
@@ -490,8 +553,48 @@ j decrease_lives
 
 decrease_lives:
 addi $t3, $t3, -1
+jal remove_carrot
 beqz $t3, END
-j p_pressed
+j send_to_start
+
+remove_carrot:
+li $a1, BASE_ADDRESS
+la $a0, B
+la $t8, pink
+lw $t8, 0($t8)
+beq $t3, 2, remove_carrot_one
+beq $t3, 1, remove_carrot_two
+sw $t8, 488($a0)
+sw $t8, 744($a0)
+sw $t8, 1000($a0)
+
+remove_carrot_two:
+sw $t8, 476($a0)
+sw $t8, 732($a0)
+sw $t8, 988($a0)
+
+remove_carrot_one:
+sw $t8, 464($a0)
+sw $t8, 720($a0)
+sw $t8, 976($a0)
+jr $ra
+
+send_to_start:
+		# store the original layout on stack
+la $a0, B	# $a0 holds address of array B
+li $a1, BASE_ADDRESS # $t0 stores the base address for display
+li $a2, 0x10000 # save 256*256 pixels
+
+jal clear_background
+addi $s0, $zero, 12544
+
+		# initial player creation
+li $a2, 0xFFE6C4
+add $a1, $s0, $zero
+addi $a1, $a1, BASE_ADDRESS
+jal player
+
+j next_move
 
 move_monster:
 	li	$v0, 32			# syscall sleep
@@ -1095,6 +1198,15 @@ sw $t7, 804($a1) #leaf
 sw $t7, 812($a1) #leaf
 sw $t7, 1060($a1) #leaf
 sw $t7, 1068($a1) #leaf
+jr $ra
+
+mini_carrot:
+li $t7, 0x00AE00 #green
+li $t6, 0xFF9000 #orange
+
+sw $t7, 0($a1) #carrot
+sw $t6, 256($a1) #carrot
+sw $t6, 512($a1) #carrot
 
 add $v1, $a1, $zero	#store address
 
