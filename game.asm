@@ -168,6 +168,28 @@ jal ladder_horizontal
 add $a1, $a1, $t0
 jal ladder_vertical
 
+li $a1, 0xA77C38
+li $a2, 0x5D1A0F
+li $a0, 13520  #5 cookies
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
+
+li $a0, 2176
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
+
+li $a0, 4192
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
+
+li $a0, 7728
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
+
+li $a0, 10652
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
+
 		# store the original layout on stack
 la $a0, B	# $a0 holds address of array B
 li $a1, BASE_ADDRESS # $t0 stores the base address for display
@@ -188,27 +210,10 @@ add $a1, $s6, $zero
 add $a1, $a1, $t0
 jal cookie_monster
 addi $a0, $a1, 284
+li $a1, 0xA77C38
+li $a2, 0x5D1A0F
 jal cookie
 
-li $a0, 13520  #5 cookies
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
-
-li $a0, 2176
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
-
-li $a0, 4960
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
-
-li $a0, 7728
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
-
-li $a0, 10652
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
 
 game_loop:
 	li $t9, 0xffff0000		# get keypress from keyboard input
@@ -231,19 +236,17 @@ keypress:
 w_pressed:
 	
 	addi  $s3, $zero, -256		# s3 = make player be 256 higher
+	add $a3, $s0, $s3
+	la $a2, B
+	add $a1, $t3, $zero
+	jal check_platform_above
+	beq $v1, 1, next_move
 	
 	la $a0, B	# $a0 holds address of array B
 	li $a1, BASE_ADDRESS # $t0 stores the base address for display
 	add $a1, $a1, $s0  # $t0 stores the base address for display
 	add $a0, $a0, $s0  # $t0 stores the base address for display
-
-	add $a3, $s0, $s3
-	la $a2, B
-	jal check_platform_above
-	beq $v1, 1, next_move
-	
 	add $s0, $s3, $s0		# update player position
-
 
 	jal clean_up
 		# initial player creation
@@ -261,16 +264,16 @@ w_pressed:
 s_pressed:
 	addi $s3, $zero, 256		# s3 = make player be 256 higher
 		
+	add $a3, $s0, $s3
+	la $a2, B
+	add $a1, $t3, $zero
+	jal check_platform_down
+	beq $v1, 1, next_move
+	
 	la $a0, B	# $a0 holds address of array B
 	li $a1, BASE_ADDRESS # $t0 stores the base address for display
 	add $a1, $a1, $s0  # $t0 stores the base address for display
 	add $a0, $a0, $s0  # $t0 stores the base address for display
-	
-	add $a3, $s0, $s3
-	la $a2, B
-	jal check_platform_down
-	beq $v1, 1, next_move
-	
 	add $s0, $s3, $s0		# update player position
 
 	jal clean_down
@@ -288,18 +291,18 @@ a_pressed:
 	addi $s3, $zero, -4		# s3 = make player be 256 higher
 	
 		
+	add $a3, $s0, $s3
+	la $a2, B
+	add $a1, $t3, $zero
+	jal check_platform_left
+	beq $v1, 1, next_move
+	
 	la $a0, B	# $a0 holds address of array B
 	li $a1, BASE_ADDRESS # $t0 stores the base address for display
 	add $a1, $a1, $s0  # $t0 stores the base address for display
 	add $a0, $a0, $s0  # $t0 stores the base address for display
-	
-	add $a3, $s0, $s3
-	la $a2, B
-	jal check_platform_left
-	beq $v1, 1, next_move
-	
 	add $s0, $s3, $s0		# update player position
-	
+
 	
 	jal clean_left
 		# initial player creation
@@ -314,16 +317,17 @@ a_pressed:
 d_pressed:
 	addi  $s3, $zero, 4		# s3 = make player be 256 higher
 
+	
+	add $a3, $s0, $s3
+	la $a2, B
+	add $a1, $t3, $zero
+	jal check_platform_right
+	beq $v1, 1, next_move
+	
 	la $a0, B	# $a0 holds address of array B
 	li $a1, BASE_ADDRESS # $t0 stores the base address for display
 	add $a1, $a1, $s0  # $t0 stores the base address for display
 	add $a0, $a0, $s0  # $t0 stores the base address for display
-	
-	add $a3, $s0, $s3
-	la $a2, B
-	jal check_platform_right
-	beq $v1, 1, next_move
-	
 	add $s0, $s3, $s0		# update player position
 
 	
@@ -358,7 +362,11 @@ j next_move
 
 
 next_move:
-	j 	game_loop		# loop back to beginning
+li $a0, 4192
+addi $a0, $a0, BASE_ADDRESS
+beq $s0, $a0, eat_cookie
+
+j 	game_loop		# loop back to beginning
 
 
 
@@ -366,8 +374,19 @@ next_move:
 
 
 
-
-
+eat_cookie:
+	
+	li $a1, 0xffc0cb
+	li $a2, 0xffc0cb
+	jal cookie
+	
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	addi $a1, $a1, BASE_ADDRESS
+	jal player
+	
+	j game_loop
+	
 
 check_flying:
 add $t8, $a2, $a3
@@ -403,97 +422,97 @@ j check_flying
 check_platform_above:
 add $t8, $a2, $a3
 lw $t8, 4($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 8($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 12($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 16($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 20($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 24($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 28($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 addi $v1, $zero, 0
 jr $ra
 
 check_platform_left:
 add $t8, $a2, $a3
 lw $t8, 0($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 256($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 512($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 768($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 1024($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 1280($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 1536($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 1792($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 2048($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 addi $v1, $zero, 0
 jr $ra
 
 check_platform_right:
 add $t8, $a2, $a3
 lw $t8, 32($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 288($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 544($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 800($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 1312($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 1568($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 1824($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 2080($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 1328($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 addi $v1, $zero, 0
 jr $ra
 
 check_platform_down:
 add $t8, $a2, $a3
 lw $t8, 2060($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 add $t8, $a2, $a3
 lw $t8, 2068($t8)
-beq $t8, 0x9a3f1d, yes_platform
+beq $t8, $a1, yes_platform
 addi $v1, $zero, 0
 jr $ra
 
@@ -748,29 +767,27 @@ subi $a1, $a1, 1020
 jr $ra
 
 cookie:
-li $t8, 0xA77C38
-li $t7, 0x5D1A0F
-sw $t8, 4($a0)
-sw $t8, 8($a0)
-sw $t7, 12($a0)
-sw $t8, 256($a0) #cookie
-sw $t7, 260($a0)
-sw $t8, 264($a0)
-sw $t8, 268($a0)
-sw $t7, 272($a0)
-sw $t8, 512($a0) #cookie
-sw $t8, 516($a0)
-sw $t8, 520($a0)
-sw $t7, 524($a0)
-sw $t8, 528($a0)
-sw $t7, 768($a0) #cookie
-sw $t8, 772($a0)
-sw $t7, 776($a0)
-sw $t8, 780($a0)
-sw $t8, 784($a0)
-sw $t8, 1028($a0)
-sw $t8, 1032($a0)
-sw $t7, 1036($a0)
+sw $a1, 4($a0)
+sw $a1, 8($a0)
+sw $a2, 12($a0)
+sw $a1, 256($a0) #cookie
+sw $a2, 260($a0)
+sw $a1, 264($a0)
+sw $a1, 268($a0)
+sw $a2, 272($a0)
+sw $a1, 512($a0) #cookie
+sw $a1, 516($a0)
+sw $a1, 520($a0)
+sw $a2, 524($a0)
+sw $a1, 528($a0)
+sw $a2, 768($a0) #cookie
+sw $a1, 772($a0)
+sw $a2, 776($a0)
+sw $a1, 780($a0)
+sw $a1, 784($a0)
+sw $a1, 1028($a0)
+sw $a1, 1032($a0)
+sw $a2, 1036($a0)
 jr $ra
 
 player:
