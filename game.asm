@@ -43,6 +43,7 @@ pink: .word 0xffc0cb
 brown: .word 0x9a3f1d
 blue: .word 0x4587C0
 ladder_colour: .word 0x37969D	#ladder color
+lives: .word 3
 .text
 
 .globl main
@@ -67,6 +68,8 @@ la $s2, B			# $t9 holds address of array A
 la $s1, cookie_positions		# get address of monster
 lw $s1, 0($s1)		# load value of monster
 li $t2, 184 #monster movement
+la $t3, lives		# get lives
+lw $t3, 0($t3)		# num lives
 
 li $a0, 0	#background
 add $a0, $a0, $t0
@@ -220,6 +223,7 @@ jal cookie
 
 game_loop:
 	jal move_monster
+	jal check_monster_player_location
 	
 	li $t9, 0xffff0000		# get keypress from keyboard input
 	lw $t8, 0($t9)
@@ -378,14 +382,116 @@ j 	game_loop		# loop back to beginning
 
 
 check_monster_player_location:
+#approaching her left
 beq $s6, $s0, take_a_life
+add $t8, $zero, $s6
+add $t7, $zero, $s0
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+addi $t8, $t8, 4
+beq $t8, $t7, take_a_life
+#approaching her right
+add $t8, $zero, $s6
+add $t7, $zero, $s0
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+#approaching her headtop
+add $t8, $zero, $s6
+add $t7, $zero, $s0
+addi $t8, $t8, 2048	#two monster legs
+addi $t6, $t8, 16
+beq $t8, $t7, take_a_life
+beq $t6, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t7, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t7, take_a_life
+#approaching her legs			#TEST FOR LATER LEVELS!!!!
+add $t8, $zero, $s6
+add $t7, $zero, $s0
+addi $t7, $t7, 2060	#two human legs
+addi $t6, $t8, 2068
+beq $t8, $t7, take_a_life
+beq $t6, $t8, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t8, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t8, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t8, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t8, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t8, take_a_life
+addi $t7, $t7, 4
+beq $t8, $t7, take_a_life
+beq $t6, $t8, take_a_life
+
 jr $ra
 
 take_a_life:
 li $a1, BASE_ADDRESS # $t0 stores the base address for display
 li $t8, 0xA77C38
 sw $t8, 16($a1)		# write back into memory into B
-jr $ra
+j decrease_lives
+
+decrease_lives:
+addi $t3, $t3, -1
+beqz $t3, END
+j p_pressed
 
 move_monster:
 	li	$v0, 32			# syscall sleep
