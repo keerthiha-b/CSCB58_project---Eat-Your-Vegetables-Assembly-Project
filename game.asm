@@ -190,9 +190,27 @@ jal cookie_monster
 addi $a0, $a1, 284
 jal cookie
 
+li $a0, 13520  #5 cookies
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
+
+li $a0, 2176
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
+
+li $a0, 4960
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
+
+li $a0, 7728
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
+
+li $a0, 10652
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
 
 game_loop:
-
 	li $t9, 0xffff0000		# get keypress from keyboard input
 	lw $t8, 0($t9)
 	beq $t8, 1, keypress
