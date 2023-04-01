@@ -37,8 +37,12 @@
 size:	.word 0x10000
 player_position:  .word 12552
 monster_position: .word 1300
+cookie_positions: .word 10652, 7728, 4192, 2176, 13520
 B: .word 0:65536
-
+pink: .word 0xffc0cb
+brown: .word 0x9a3f1d
+blue: .word 0x4587C0
+ladder_colour: .word 0x37969D	#ladder color
 .text
 
 .globl main
@@ -55,15 +59,14 @@ main:
 
 li $t0, BASE_ADDRESS # $t0 stores the base address for display
 li $t1, 0x10000 # save 256*256 pixels
-li $t2, 0xffc0cb # $t2 stores the pink colour code for background
-li $t3, 0x9a3f1d # $t3 stores the brown colour code for platforms
-li $t4, 0x4587C0 # $t3 stores the blue colour monster code
-li $s4, 0x37969D	#ladder color
 la $s0, player_position		# get address of player
 lw $s0, 0($s0)		# load value of player
 la $s6, monster_position		# get address of monster
 lw $s6, 0($s6)		# load value of monster
 la $s2, B			# $t9 holds address of array A
+la $s1, cookie_positions		# get address of monster
+lw $s1, 0($s1)		# load value of monster
+li $t2, 184 #monster movement
 
 li $a0, 0	#background
 add $a0, $a0, $t0
@@ -178,7 +181,7 @@ li $a0, 2176
 addi $a0, $a0, BASE_ADDRESS
 jal cookie
 
-li $a0, 4192
+li $a0, 4960
 addi $a0, $a0, BASE_ADDRESS
 jal cookie
 
@@ -216,6 +219,8 @@ jal cookie
 
 
 game_loop:
+	jal move_monster
+	
 	li $t9, 0xffff0000		# get keypress from keyboard input
 	lw $t8, 0($t9)
 	beq $t8, 1, keypress
@@ -238,8 +243,10 @@ w_pressed:
 	addi  $s3, $zero, -256		# s3 = make player be 256 higher
 	add $a3, $s0, $s3
 	la $a2, B
-	add $a1, $t3, $zero
-	jal check_platform_above
+	la $t8, brown
+	lw $t8, 0($t8)		# brown color
+	add $a1, $t8, $zero
+	jal check_above
 	beq $v1, 1, next_move
 	
 	la $a0, B	# $a0 holds address of array B
@@ -258,7 +265,6 @@ w_pressed:
 	#add $a3, $s0, $zero
 	#la $a2, B
 	#jal check_flying
-	
 	j next_move 	
 
 s_pressed:
@@ -266,8 +272,10 @@ s_pressed:
 		
 	add $a3, $s0, $s3
 	la $a2, B
-	add $a1, $t3, $zero
-	jal check_platform_down
+	la $t8, brown
+	lw $t8, 0($t8)		# brown color
+	add $a1, $t8, $zero
+	jal check_down
 	beq $v1, 1, next_move
 	
 	la $a0, B	# $a0 holds address of array B
@@ -293,8 +301,10 @@ a_pressed:
 		
 	add $a3, $s0, $s3
 	la $a2, B
-	add $a1, $t3, $zero
-	jal check_platform_left
+	la $t8, brown
+	lw $t8, 0($t8)		# brown color
+	add $a1, $t8, $zero
+	jal check_left
 	beq $v1, 1, next_move
 	
 	la $a0, B	# $a0 holds address of array B
@@ -320,8 +330,10 @@ d_pressed:
 	
 	add $a3, $s0, $s3
 	la $a2, B
-	add $a1, $t3, $zero
-	jal check_platform_right
+	la $t8, brown
+	lw $t8, 0($t8)		# brown color
+	add $a1, $t8, $zero
+	jal check_right
 	beq $v1, 1, next_move
 	
 	la $a0, B	# $a0 holds address of array B
@@ -337,7 +349,6 @@ d_pressed:
 	add $a1, $s0, $zero
 	addi $a1, $a1, BASE_ADDRESS
 	jal player
-
 	
 	j next_move 
 	
@@ -362,64 +373,146 @@ j next_move
 
 
 next_move:
-li $a0, 4192
-addi $a0, $a0, BASE_ADDRESS
-beq $s0, $a0, eat_cookie
 
 j 	game_loop		# loop back to beginning
 
 
+check_monster_player_location:
 
 
 
-
-
-eat_cookie:
+move_monster:
+	li	$v0, 32			# syscall sleep
+	addi	$a0, $zero, 60		# 60 ms
+	syscall
 	
-	li $a1, 0xffc0cb
-	li $a2, 0xffc0cb
-	jal cookie
-	
-	li $a2, 0xFFE6C4
-	add $a1, $s0, $zero
-	addi $a1, $a1, BASE_ADDRESS
-	jal player
-	
-	j game_loop
-	
+addi $sp, $sp, -4
+sw $ra, 0($sp)
+bgtz $t2, monster_right
+blez $t2, monster_left
 
-check_flying:
-add $t8, $a2, $a3
-lw $t8, 2316($t8)
-beq $t8, 0xffc0cb, gravity
-lw $t8, 2324($t8)
-beq $t8, 0xffc0cb, gravity
+monster_right:
+la $a0, B	# $a0 holds address of array B
+li $a1, BASE_ADDRESS # $t0 stores the base address for display
+add $a1, $a1, $s6  # $s6 is monster address
+add $a0, $a0, $s6  # $t0 stores the base address for display
+	
+jal clean_monster_right
+
+addi $s6, $s6, 4
+addi $t2, $t2, -4	
+		# initial cookie monster creation
+li $a2, 0x4587C0
+add $a1, $s6, $zero
+add $a1, $a1, $t0
+jal cookie_monster
+addi $a0, $a1, 284
+li $a1, 0xA77C38
+li $a2, 0x5D1A0F
+jal cookie
+lw $ra, 0($sp)
+addi $sp, $sp, 4
 
 jr $ra
 
 
-gravity:
-addi $s3, $zero, 256		# s3 = make player be 256 higher
-		
+monster_left:
 la $a0, B	# $a0 holds address of array B
 li $a1, BASE_ADDRESS # $t0 stores the base address for display
-add $a1, $a1, $s0  # $t0 stores the base address for display
-add $a0, $a0, $s0  # $t0 stores the base address for display
-	
-add $s0, $s3, $s0		# update player position
+add $a1, $a1, $s6  # $s6 is monster address
+add $a0, $a0, $s6  # $t0 stores the base address for display
 
-jal clean_down
-	
-		# initial player creation
-li $a2, 0xFFE6C4
-add $a1, $s0, $zero
-addi $a1, $a1, BASE_ADDRESS
-jal player
+jal clean_monster_left
 
-j check_flying
+addi $s6, $s6, -4	
+addi $t2, $t2, -4	
+		# initial cookie monster creation
+li $a2, 0x4587C0
+add $a1, $s6, $zero
+add $a1, $a1, $t0
+jal cookie_monster
+addi $a0, $a1, 284
+li $a1, 0xA77C38
+li $a2, 0x5D1A0F
+jal cookie
+lw $ra, 0($sp)
 
+addi $sp, $sp, 4
+beq $t2, -184, reset_monster_movement
 
-check_platform_above:
+jr $ra
+
+reset_monster_movement:
+addi $t2, $zero, 184
+jr $ra
+
+clean_monster_left:
+lw $t8, 16($a0)
+sw $t8, 16($a1)		# write back into memory into B
+lw $t8, 272($a0)
+sw $t8, 272($a1)		# write back into memory into B
+lw $t8, 296($a0)
+sw $t8, 296($a1)		# write back into memory into B
+lw $t8, 528($a0)
+sw $t8, 528($a1)		# write back into memory into B
+lw $t8, 556($a0)
+sw $t8, 556($a1)		# write back into memory into B
+lw $t8, 784($a0)
+sw $t8, 784($a1)		# write back into memory into B
+lw $t8, 812($a0)
+sw $t8, 812($a1)		# write back into memory into B
+lw $t8, 1068($a0)
+sw $t8, 1068($a1)		# write back into memory into B
+lw $t8, 1320($a0)
+sw $t8, 1320($a1)		# write back into memory into B
+lw $t8, 1300($a0)
+sw $t8, 1300($a1)		# write back into memory into B
+lw $t8, 1556($a0)
+sw $t8, 1556($a1)		# write back into memory into B
+lw $t8, 1812($a0)
+sw $t8, 1812($a1)		# write back into memory into B
+lw $t8, 2064($a0)
+sw $t8, 2064($a1)		# write back into memory into B
+lw $t8, 2060($a0)
+sw $t8, 2060($a1)		# write back into memory into B
+lw $t8, 2048($a0)
+sw $t8, 2048($a1)		# write back into memory into B
+jr $ra
+
+clean_monster_right:
+lw $t8, 0($a0)
+sw $t8, 0($a1)		# write back into memory into B
+lw $t8, 256($a0)
+sw $t8, 256($a1)		# write back into memory into B
+lw $t8, 288($a0)
+sw $t8, 288($a1)		# write back into memory into B
+lw $t8, 512($a0)
+sw $t8, 512($a1)		# write back into memory into B
+lw $t8, 540($a0)
+sw $t8, 540($a1)		# write back into memory into B
+lw $t8, 768($a0)
+sw $t8, 768($a1)		# write back into memory into B
+lw $t8, 1016($a0)
+sw $t8, 1016($a1)		# write back into memory into B
+lw $t8, 796($a0)
+sw $t8, 796($a1)		# write back into memory into B
+lw $t8, 1312($a0)
+sw $t8, 1312($a1)		# write back into memory into B
+lw $t8, 1276($a0)
+sw $t8, 1276($a1)		# write back into memory into B
+lw $t8, 1532($a0)
+sw $t8, 1532($a1)		# write back into memory into B
+lw $t8, 1788($a0)
+sw $t8, 1788($a1)		# write back into memory into B
+lw $t8, 2048($a0)
+sw $t8, 2048($a1)		# write back into memory into B
+lw $t8, 2060($a0)
+sw $t8, 2060($a1)		# write back into memory into B
+lw $t8, 2064($a0)
+sw $t8, 2064($a1)		# write back into memory into B
+jr $ra
+
+check_above:
 add $t8, $a2, $a3
 lw $t8, 4($t8)
 beq $t8, $a1, yes_platform
@@ -444,7 +537,7 @@ beq $t8, $a1, yes_platform
 addi $v1, $zero, 0
 jr $ra
 
-check_platform_left:
+check_left:
 add $t8, $a2, $a3
 lw $t8, 0($t8)
 beq $t8, $a1, yes_platform
@@ -475,7 +568,7 @@ beq $t8, $a1, yes_platform
 addi $v1, $zero, 0
 jr $ra
 
-check_platform_right:
+check_right:
 add $t8, $a2, $a3
 lw $t8, 32($t8)
 beq $t8, $a1, yes_platform
@@ -506,7 +599,7 @@ beq $t8, $a1, yes_platform
 addi $v1, $zero, 0
 jr $ra
 
-check_platform_down:
+check_down:
 add $t8, $a2, $a3
 lw $t8, 2060($t8)
 beq $t8, $a1, yes_platform
