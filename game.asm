@@ -373,13 +373,19 @@ j next_move
 
 
 next_move:
-
+jal check_monster_player_location
 j 	game_loop		# loop back to beginning
 
 
 check_monster_player_location:
+beq $s6, $s0, take_a_life
+jr $ra
 
-
+take_a_life:
+li $a1, BASE_ADDRESS # $t0 stores the base address for display
+li $t8, 0xA77C38
+sw $t8, 16($a1)		# write back into memory into B
+jr $ra
 
 move_monster:
 	li	$v0, 32			# syscall sleep
@@ -473,8 +479,6 @@ lw $t8, 1812($a0)
 sw $t8, 1812($a1)		# write back into memory into B
 lw $t8, 2064($a0)
 sw $t8, 2064($a1)		# write back into memory into B
-lw $t8, 2060($a0)
-sw $t8, 2060($a1)		# write back into memory into B
 lw $t8, 2048($a0)
 sw $t8, 2048($a1)		# write back into memory into B
 jr $ra
@@ -506,10 +510,9 @@ lw $t8, 1788($a0)
 sw $t8, 1788($a1)		# write back into memory into B
 lw $t8, 2048($a0)
 sw $t8, 2048($a1)		# write back into memory into B
-lw $t8, 2060($a0)
-sw $t8, 2060($a1)		# write back into memory into B
 lw $t8, 2064($a0)
 sw $t8, 2064($a1)		# write back into memory into B
+
 jr $ra
 
 check_above:
