@@ -38,12 +38,14 @@ size:	.word 0x10000
 player_position:  .word 12552
 monster_position: .word 1300
 cookie_positions: .word 10652, 7728, 4192, 2176, 13520
+num_cookies: .word 5
 B: .word 0:65536
 pink: .word 0xffc0cb
+str6: .asciiz "\n"
 brown: .word 0x9a3f1d
 blue: .word 0x4587C0
 ladder_colour: .word 0x37969D	#ladder color
-lives: .word 3
+lives: .word 1
 .text
 
 .globl main
@@ -386,23 +388,50 @@ jal player
 j next_move
 
 
-
-
 next_move:
 jal check_monster_player_location
+#j check_cookie_player_location
 j 	game_loop		# loop back to beginning
 
+
 check_cookie_player_location:
-beq $s6, $s0, take_a_life
-add $t8, $zero, $s6
-add $t7, $zero, $s0
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
+la $t4, cookie_positions
+add $t8, $zero, $zero
+la $t7, num_cookies
+lw $t7, 0($t7)
+addi $t9, $zero, 4
+mult $t7, $t9		# get size of whole array
+mflo $t7			# store total size
 
-jr $ra
+loop_cookies:
+bge $t8, $t7, end_loop 
+add $t9, $t4, $t8	# get position in array
+lw $t9, 0($t9)
+	    li $v0, 1
+	    move $t9, $v1		# number to print in $v1
+	    syscall
+	    	    				# Print "\n"
+	    li $v0, 4
+	    la $a0, str6
+	    syscall       
+	    
+beq $t9, $s0, found_cookie
+addi $t8, $t8, 4
+j loop_cookies
+j end_loop
 
+found_cookie:
+
+la $a1, pink	#get rid of cookie
+la $a2, pink
+lw $a1, 0($a1)
+lw $a2, 0($a2)
+add $a0, $zero, $t9
+addi $a0, $a0, BASE_ADDRESS
+jal cookie
+
+end_loop:
+j game_loop
 
 check_monster_player_location:
 #approaching her left
@@ -554,8 +583,17 @@ j decrease_lives
 decrease_lives:
 addi $t3, $t3, -1
 jal remove_carrot
-beqz $t3, END
+beqz $t3, your_dead
 j send_to_start
+
+your_dead:
+li $a0, 0	#background
+addi $a0, $a0, BASE_ADDRESS
+li $t1, 0x10000 # save 256*256 pixels
+li $a1, 0
+li $a2, 0xffc0cb
+j end_scene
+
 
 remove_carrot:
 li $a1, BASE_ADDRESS
@@ -983,6 +1021,229 @@ bgt $t1, $a1, side_border # repeat while there are still pixels left
 li $t1, 0x10000 # save 256*256 pixels 
 jr $ra
 
+end_scene:
+sw $a2, 0($a0) # load brown color onto stack at specific position
+sw $a2, 256($a0) # load brown color onto stack at specific position
+addi $a0, $a0, 4 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+
+bgt $t1, $a1, end_scene # repeat while there are still pixels left
+li $t1, 0x10000 # save 256*256 pixels 
+#addi $t8, $t8, 32768
+		# initial cookie monster creation
+li $a2, 0x4587C0
+add $a1, $s6, $zero
+add $a1, $a1, $t0
+jal cookie_monster
+addi $a0, $a1, 284
+li $a1, 0xA77C38
+li $a2, 0x5D1A0F
+jal cookie
+
+addi $a1, $zero, BASE_ADDRESS
+addi $a1, $a1, 6160
+li $t9, 0x000000 
+#each 4 lines is 1 square
+
+#bye - b
+
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 256($a1)
+sw $t9, 260($a1)
+		
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 768($a1)
+sw $t9, 772($a1)
+
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1280($a1)
+sw $t9, 1284($a1)
+
+sw $t9, 1032($a1)
+sw $t9, 1036($a1)
+sw $t9, 1288($a1)
+sw $t9, 1292($a1)
+
+sw $t9, 1040($a1)
+sw $t9, 1044($a1)
+sw $t9, 1296($a1)
+sw $t9, 1300($a1)
+
+sw $t9, 1296($a1)
+sw $t9, 1300($a1)
+sw $t9, 1552($a1)
+sw $t9, 1556($a1)
+sw $t9, 1808($a1)
+sw $t9, 1812($a1)
+
+sw $t9, 1536($a1)
+sw $t9, 1540($a1)
+sw $t9, 1792($a1)
+sw $t9, 1796($a1)
+
+sw $t9, 2048($a1)
+sw $t9, 2052($a1)
+sw $t9, 2304($a1)
+sw $t9, 2308($a1)
+
+sw $t9, 2056($a1)
+sw $t9, 2060($a1)
+sw $t9, 2312($a1)
+sw $t9, 2316($a1)
+
+sw $t9, 2064($a1)
+sw $t9, 2068($a1)
+sw $t9, 2320($a1)
+sw $t9, 2324($a1)
+
+# y
+addi $a1, $a1, 40
+
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 256($a1)
+sw $t9, 260($a1)
+		
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 768($a1)
+sw $t9, 772($a1)
+
+sw $t9, 1032($a1)
+sw $t9, 1036($a1)
+sw $t9, 1288($a1)
+sw $t9, 1292($a1)
+
+sw $t9, 1040($a1)
+sw $t9, 1044($a1)
+sw $t9, 1296($a1)
+sw $t9, 1300($a1)
+
+sw $t9, 1048($a1)
+sw $t9, 1052($a1)
+sw $t9, 1304($a1)
+sw $t9, 1308($a1)
+
+sw $t9, 800($a1)
+sw $t9, 804($a1)
+sw $t9, 544($a1)
+sw $t9, 548($a1)
+
+sw $t9, 288($a1)
+sw $t9, 292($a1)
+sw $t9, 32($a1)
+sw $t9, 36($a1)
+
+sw $t9, 1552($a1)
+sw $t9, 1556($a1)
+sw $t9, 1808($a1)
+sw $t9, 1812($a1)
+
+sw $t9, 2064($a1)
+sw $t9, 2068($a1)
+sw $t9, 2320($a1)
+sw $t9, 2324($a1)
+
+# e
+addi $a1, $a1, 52
+
+
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 256($a1)
+sw $t9, 260($a1)
+		
+sw $t9, 8($a1)	
+sw $t9, 12($a1)
+sw $t9, 264($a1)
+sw $t9, 268($a1)
+
+sw $t9, 16($a1)	
+sw $t9, 20($a1)
+sw $t9, 272($a1)
+sw $t9, 276($a1)
+
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 768($a1)
+sw $t9, 772($a1)
+
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1280($a1)
+sw $t9, 1284($a1)
+
+sw $t9, 1032($a1)
+sw $t9, 1036($a1)
+sw $t9, 1288($a1)
+sw $t9, 1292($a1)
+
+sw $t9, 1040($a1)
+sw $t9, 1044($a1)
+sw $t9, 1296($a1)
+sw $t9, 1300($a1)
+
+sw $t9, 1536($a1)
+sw $t9, 1540($a1)
+sw $t9, 1792($a1)
+sw $t9, 1796($a1)
+
+sw $t9, 2048($a1)
+sw $t9, 2052($a1)
+sw $t9, 2304($a1)
+sw $t9, 2308($a1)
+
+sw $t9, 2056($a1)
+sw $t9, 2060($a1)
+sw $t9, 2312($a1)
+sw $t9, 2316($a1)
+
+sw $t9, 2064($a1)
+sw $t9, 2068($a1)
+sw $t9, 2320($a1)
+sw $t9, 2324($a1)
+
+#sad face
+addi $a1, $a1, 52
+addi $a1, $a1, 1024
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1280($a1)
+sw $t9, 1284($a1)
+
+sw $t9, 1032($a1)
+sw $t9, 1036($a1)
+sw $t9, 1288($a1)
+sw $t9, 1292($a1)
+
+sw $t9, 1040($a1)
+sw $t9, 1044($a1)
+sw $t9, 1296($a1)
+sw $t9, 1300($a1)
+
+sw $t9, 1556($a1)
+sw $t9, 1560($a1)
+sw $t9, 1816($a1)
+sw $t9, 1812($a1)
+
+sw $t9, 1536($a1)
+sw $t9, 1532($a1)
+sw $t9, 1788($a1)
+sw $t9, 1792($a1)
+
+addi $a0, $a1, -1036
+li $a1, 0xA77C38
+li $a2, 0x5D1A0F
+jal cookie
+
+addi $a0, $a0, 32
+jal cookie
+
+j END
+
 platforms:
 sw $a2, 0($a0) # load brown color onto stack at specific position
 sw $a2, 256($a0) # load brown color onto stack at specific position
@@ -1216,14 +1477,3 @@ jr $ra
 END:
 li $v0, 10	# exit the program
 syscall
-
-
-
-
-
-
-
-
-
-
-
