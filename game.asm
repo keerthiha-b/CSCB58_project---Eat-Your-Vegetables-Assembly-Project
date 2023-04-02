@@ -34,221 +34,219 @@
 #
 #####################################################################
 .data
-size:	.word 0x10000
-player_position:  .word 12552
-monster_position: .word 1300
-cookie_positions: .word 10652, 7728, 4192, 2176, 13520
-num_cookies: .word 5
-B: .word 0:65536
-pink: .word 0xffc0cb
+size:	.word 0x10000					# number of pixels
+player_position:  .word 12552				# player start position
+monster_position: .word 1300				# monster start position
+cookie_positions: .word 10652, 7728, 4192, 2176, 13520	# cookie start positions
+num_cookies: .word 5					# number of cookies
+B: .word 0:65536					# array to hold background
+pink: .word 0xffc0cb					# pink colour for background
 str6: .asciiz "\n"
-brown: .word 0x9a3f1d
-blue: .word 0x4587C0
-ladder_colour: .word 0x37969D	#ladder color
-lives: .word 1
+brown: .word 0x9a3f1d					# brown colour for platforms
+blue: .word 0x4587C0					# blue colour for cookie monster
+ladder_colour: .word 0x37969D				# ladder color
+lives: .word 3						# number of lives
 .text
 
 .globl main
 main:
 #
 # Bitmap Display Configuration:
-# - Unit width in pixels: 8
-# - Unit height in pixels: 8
+# - Unit width in pixels: 4
+# - Unit height in pixels: 4
 # - Display width in pixels: 256
 # - Display hefight in pixels: 256
 # - Base Address for Display: 0x10008000 ($gp)
 #
 .eqv BASE_ADDRESS 0x10008000
 
-li $t0, BASE_ADDRESS # $t0 stores the base address for display
-li $t1, 0x10000 # save 256*256 pixels
-la $s0, player_position		# get address of player
-lw $s0, 0($s0)		# load value of player
-la $s6, monster_position		# get address of monster
-lw $s6, 0($s6)		# load value of monster
-la $s2, B			# $t9 holds address of array A
-la $s1, cookie_positions		# get address of monster
-lw $s1, 0($s1)		# load value of monster
-li $t2, 184 #monster movement
-la $t3, lives		# get lives
-lw $t3, 0($t3)		# num lives
-li $s7, 0	#if initialized
+li $t0, BASE_ADDRESS 					# $t0 stores the base address for display
+li $t1, 0x10000 					# save 256*256 pixels
+la $s0, player_position					
+lw $s0, 0($s0)						# get location of player throughout the game
+la $s6, monster_position				
+lw $s6, 0($s6)						# get location of monster throughout the game
+la $s2, B						# address of the background array
+la $s1, cookie_positions				
+lw $s1, 0($s1)						# get location of cookies throughout the game
+li $t2, 184 						# this is the furthest the monster will move right
+la $t3, lives						
+lw $t3, 0($t3)						# number of lives throughout the game
 
-jal set_background
-j start_page
+jal set_background					# set the background - line 79
+j start_page						# display the start page - line 1038
 
 set_background:
-addi $sp, $sp, -4
-sw $ra, 0($sp)
+	addi $sp, $sp, -4				# save return address
+	sw $ra, 0($sp)
 
-li $a0, 0	#background
-add $a0, $a0, $t0
-li $a1, 0
-li $a2, 0xffc0cb
-jal platforms
+	li $a0, 0					# create the background using platform function (creates rectangles)
+	add $a0, $a0, $t0
+	li $a1, 0
+	li $a2, 0xffc0cb
+	jal platforms					# platform function - line 1634
 
-li $a0, 14848	#floor
-add $a0, $a0, $t0
-li $a1, 0
-li $a2,  0x9a3f1d
-jal platforms
+	li $a0, 14848					# create floor		
+	add $a0, $a0, $t0
+	li $a1, 0
+	li $a2,  0x9a3f1d
+	jal platforms
 
-li $a0, 0	#upper border
-add $a0, $a0, $t0
-li $a1, 65472
-li $a2,  0x9a3f1d
-jal platforms
-li $a0, 256	
-add $a0, $a0, $t0
-li $a1, 65472
-li $a2,  0xffc0cb
-jal platforms
+	li $a0, 0					# upper border
+	add $a0, $a0, $t0
+	li $a1, 65472
+	li $a2,  0x9a3f1d
+	jal platforms
+	li $a0, 256	
+	add $a0, $a0, $t0
+	li $a1, 65472
+	li $a2,  0xffc0cb
+	jal platforms
+	li $a0, 1024					# calling platform again to make border less thick
+	add $a0, $a0, $t0
+	li $a1, 65472
+	li $a2,  0x9a3f1d
+	jal platforms
+	li $a0, 1280	
+	add $a0, $a0, $t0
+	li $a1, 65472
+	li $a2,  0xffc0cb
+	jal platforms
 
-li $a0, 1024	#upper second border
-add $a0, $a0, $t0
-li $a1, 65472
-li $a2,  0x9a3f1d
-jal platforms
-li $a0, 1280	
-add $a0, $a0, $t0
-li $a1, 65472
-li $a2,  0xffc0cb
-jal platforms
+	li $a0, 0					# side border
+	add $a0, $a0, $t0
+	li $a1, 65472
+	li $a2,  0x9a3f1d
+	jal side_border
 
-li $a0, 0	#side border
-add $a0, $a0, $t0
-li $a1, 65472
-li $a2,  0x9a3f1d
-jal side_border
+	li $a0, 252					# side border
+	add $a0, $a0, $t0
+	li $a1, 65472
+	li $a2,  0x9a3f1d
+	jal side_border
 
-li $a0, 252	#side border
-add $a0, $a0, $t0
-li $a1, 65472
-li $a2,  0x9a3f1d
-jal side_border
+	li $a2,  0x9a3f1d
+	li $a0, 12052					# platform 1 - bottom most
+	add $a0, $a0, $t0
+	li $a1, 65480
+	jal platforms
 
-li $a2,  0x9a3f1d
-li $a0, 12052	#platform 1
-add $a0, $a0, $t0
-li $a1, 65480
-jal platforms
+	li $a0, 9236					# platform 2 - second from bottom
+	add $a0, $a0, $t0
+	li $a1, 65480
+	jal platforms
 
-li $a0, 9236	#platform 2
-add $a0, $a0, $t0
-li $a1, 65480
-jal platforms
+	li $a0, 6420					# platform 3 - 3rd from bottom
+	add $a0, $a0, $t0
+	li $a1, 65480
+	jal platforms
 
-li $a0, 6420	#platform 3
-add $a0, $a0, $t0
-li $a1, 65480
-jal platforms
+	li $a0, 3604					# platform 4 - top most
+	add $a0, $a0, $t0
+	li $a1, 65480
+	jal platforms
 
-li $a0, 3604	#platform 4
-add $a0, $a0, $t0
-li $a1, 65480
-jal platforms
+	lw $ra, 0($sp)					# get return address
+	addi $sp, $sp, 4
 
-lw $ra, 0($sp)
-addi $sp, $sp, 4
-
-jr $ra
+	jr $ra
 
 
 initialize_game:
-jal set_background
-li $a2, 0x37969D
-li $a0, 12416	#ladder 1
-subi $a1, $a0, 256
-add $a0, $a0, $t0
-jal ladder_horizontal
-add $a1, $a1, $t0
-jal ladder_vertical
+	jal set_background
+	li $a2, 0x37969D
+	li $a0, 12416	#ladder 1
+	subi $a1, $a0, 256
+	add $a0, $a0, $t0
+	jal ladder_horizontal
+	add $a1, $a1, $t0
+	jal ladder_vertical
 
-li $a0, 9548	#ladder 2
-subi $a1, $a0, 256
-add $a0, $a0, $t0
-jal ladder_horizontal
-add $a1, $a1, $t0
-jal ladder_vertical
+	li $a0, 9548	#ladder 2
+	subi $a1, $a0, 256
+	add $a0, $a0, $t0
+	jal ladder_horizontal
+	add $a1, $a1, $t0
+	jal ladder_vertical
 
-li $a0, 9652	#ladder 3
-subi $a1, $a0, 256
-add $a0, $a0, $t0
-jal ladder_horizontal
-add $a1, $a1, $t0
-jal ladder_vertical
+	li $a0, 9652	#ladder 3
+	subi $a1, $a0, 256
+	add $a0, $a0, $t0
+	jal ladder_horizontal
+	add $a1, $a1, $t0
+	jal ladder_vertical
 
-li $a0, 6784	#ladder 4
-subi $a1, $a0, 256
-add $a0, $a0, $t0
-jal ladder_horizontal
-add $a1, $a1, $t0
-jal ladder_vertical
+	li $a0, 6784	#ladder 4
+	subi $a1, $a0, 256
+	add $a0, $a0, $t0
+	jal ladder_horizontal
+	add $a1, $a1, $t0
+	jal ladder_vertical
 
-li $a0, 4020	#ladder 5
-subi $a1, $a0, 256
-add $a0, $a0, $t0
-jal ladder_horizontal
-add $a1, $a1, $t0
-jal ladder_vertical
+	li $a0, 4020	#ladder 5
+	subi $a1, $a0, 256
+	add $a0, $a0, $t0
+	jal ladder_horizontal
+	add $a1, $a1, $t0
+	jal ladder_vertical
 
-li $a1, 0xA77C38
-li $a2, 0x5D1A0F
-li $a0, 13520  #5 cookies
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
+	li $a1, 0xA77C38
+	li $a2, 0x5D1A0F
+	li $a0, 13520  #5 cookies
+	addi $a0, $a0, BASE_ADDRESS
+	jal cookie
 
-li $a0, 2176
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
+	li $a0, 2176
+	addi $a0, $a0, BASE_ADDRESS
+	jal cookie
 
-li $a0, 4960
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
+	li $a0, 4960
+	addi $a0, $a0, BASE_ADDRESS
+	jal cookie
 
-li $a0, 7728
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
+	li $a0, 7728
+	addi $a0, $a0, BASE_ADDRESS
+	jal cookie
 
-li $a0, 10652
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
+	li $a0, 10652
+	addi $a0, $a0, BASE_ADDRESS
+	jal cookie
 
-li $a1, 464	#mini carrot
-addi $a1, $a1, BASE_ADDRESS
-jal mini_carrot
+	li $a1, 464	#mini carrot
+	addi $a1, $a1, BASE_ADDRESS
+	jal mini_carrot
 
-li $a1, 476
-addi $a1, $a1, BASE_ADDRESS
-jal mini_carrot
+	li $a1, 476
+	addi $a1, $a1, BASE_ADDRESS
+	jal mini_carrot
 
-li $a1, 488
-addi $a1, $a1, BASE_ADDRESS
-jal mini_carrot
+	li $a1, 488
+	addi $a1, $a1, BASE_ADDRESS
+	jal mini_carrot
 
 		# store the original layout on stack
-la $a0, B	# $a0 holds address of array B
-li $a1, BASE_ADDRESS # $t0 stores the base address for display
-li $a2, 0x10000 # save 256*256 pixels
+	la $a0, B	# $a0 holds address of array B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	li $a2, 0x10000 # save 256*256 pixels
 
-jal load_background
+	jal load_background
 
 
 		# initial player creation
-li $a2, 0xFFE6C4
-add $a1, $s0, $zero
-add $a1, $a1, $t0
-jal player
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	add $a1, $a1, $t0
+	jal player
 
 		# initial cookie monster creation
-li $a2, 0x4587C0
-add $a1, $s6, $zero
-add $a1, $a1, $t0
-jal cookie_monster
-addi $a0, $a1, 284
-li $a1, 0xA77C38
-li $a2, 0x5D1A0F
-jal cookie
+	li $a2, 0x4587C0
+	add $a1, $s6, $zero
+	add $a1, $a1, $t0
+	jal cookie_monster
+	addi $a0, $a1, 284
+	li $a1, 0xA77C38
+	li $a2, 0x5D1A0F
+	jal cookie
 
 
 game_loop:
@@ -274,7 +272,7 @@ keypress:
 	j next_move
 	
 l_pressed:
-jal initialize_game
+	jal initialize_game
 
 w_pressed:
 	
@@ -391,396 +389,396 @@ d_pressed:
 	j next_move 
 	
 p_pressed:
-		# store the original layout on stack
-la $a0, B	# $a0 holds address of array B
-li $a1, BASE_ADDRESS # $t0 stores the base address for display
-li $a2, 0x10000 # save 256*256 pixels
+			# store the original layout on stack
+	la $a0, B	# $a0 holds address of array B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	li $a2, 0x10000 # save 256*256 pixels
 
-jal clear_background
-addi $s0, $zero, 12544
+	jal clear_background
+	addi $s0, $zero, 12544
 
 		# initial player creation
-li $a2, 0xFFE6C4
-add $a1, $s0, $zero
-addi $a1, $a1, BASE_ADDRESS
-jal player
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	addi $a1, $a1, BASE_ADDRESS
+	jal player
 
-j next_move
+	j next_move
 
 
-next_move:
-jal check_monster_player_location
-#j check_cookie_player_location
-j 	game_loop		# loop back to beginning
+	next_move:
+	jal check_monster_player_location
+	#j check_cookie_player_location
+	j 	game_loop		# loop back to beginning
 
 
 check_cookie_player_location:
-la $t4, cookie_positions
-add $t8, $zero, $zero
-la $t7, num_cookies
-lw $t7, 0($t7)
-addi $t9, $zero, 4
-mult $t7, $t9		# get size of whole array
-mflo $t7			# store total size
+	la $t4, cookie_positions
+	add $t8, $zero, $zero
+	la $t7, num_cookies
+	lw $t7, 0($t7)
+	addi $t9, $zero, 4
+	mult $t7, $t9		# get size of whole array
+	mflo $t7			# store total size
 
 loop_cookies:
-bge $t8, $t7, end_loop 
-add $t9, $t4, $t8	# get position in array
-lw $t9, 0($t9)
-	    li $v0, 1
-	    move $t9, $v1		# number to print in $v1
-	    syscall
+	bge $t8, $t7, end_loop 
+	add $t9, $t4, $t8	# get position in array
+	lw $t9, 0($t9)
+	li $v0, 1
+	move $t9, $v1		# number to print in $v1
+	syscall
 	    	    				# Print "\n"
-	    li $v0, 4
-	    la $a0, str6
-	    syscall       
+	li $v0, 4
+	la $a0, str6
+	syscall       
 	    
-beq $t9, $s0, found_cookie
-addi $t8, $t8, 4
-j loop_cookies
-j end_loop
+	beq $t9, $s0, found_cookie
+	addi $t8, $t8, 4
+	j loop_cookies
+	j end_loop
 
 found_cookie:
 
-la $a1, pink	#get rid of cookie
-la $a2, pink
-lw $a1, 0($a1)
-lw $a2, 0($a2)
-add $a0, $zero, $t9
-addi $a0, $a0, BASE_ADDRESS
-jal cookie
+	la $a1, pink	#get rid of cookie
+	la $a2, pink
+	lw $a1, 0($a1)
+	lw $a2, 0($a2)
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	jal cookie
 
 end_loop:
-j game_loop
+	j game_loop
 
 check_monster_player_location:
-#approaching her left
-beq $s6, $s0, take_a_life
-add $t8, $zero, $s6
-add $t7, $zero, $s0
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 4
-beq $t8, $t7, take_a_life
-#approaching her right
-add $t8, $zero, $s6
-add $t7, $zero, $s0
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-#approaching her headtop
-add $t8, $zero, $s6
-add $t7, $zero, $s0
-addi $t8, $t8, 2048	#two monster legs
-addi $t6, $t8, 16
-beq $t8, $t7, take_a_life
-beq $t6, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t7, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t7, take_a_life
-#approaching her legs			#TEST FOR LATER LEVELS!!!!
-add $t8, $zero, $s6
-add $t7, $zero, $s0
-addi $t7, $t7, 2060	#two human legs
-addi $t6, $t8, 2068
-beq $t8, $t7, take_a_life
-beq $t6, $t8, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t8, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t8, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t8, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t8, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t8, take_a_life
-addi $t7, $t7, 4
-beq $t8, $t7, take_a_life
-beq $t6, $t8, take_a_life
-# along right side of monster
-beq $s6, $s0, take_a_life
-add $t8, $zero, $s6
-add $t7, $zero, $s0
-addi $t8, $t8, 288
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-# along left side of monster
-beq $s6, $s0, take_a_life		#TEST THIS SIDE LATER
-add $t8, $zero, $s6
-add $t7, $zero, $s0
-addi $t8, $t8, -8
-addi $t7, $t7, -44
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-addi $t8, $t8, 256
-beq $t8, $t7, take_a_life
-
-jr $ra
+	#approaching her left
+	beq $s6, $s0, take_a_life
+	add $t8, $zero, $s6
+	add $t7, $zero, $s0
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 4
+	beq $t8, $t7, take_a_life
+	#approaching her right
+	add $t8, $zero, $s6
+	add $t7, $zero, $s0
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	#approaching her headtop
+	add $t8, $zero, $s6
+	add $t7, $zero, $s0
+	addi $t8, $t8, 2048	#two monster legs
+	addi $t6, $t8, 16
+	beq $t8, $t7, take_a_life
+	beq $t6, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t7, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t7, take_a_life
+	#approaching her legs			#TEST FOR LATER LEVELS!!!!
+	add $t8, $zero, $s6
+	add $t7, $zero, $s0
+	addi $t7, $t7, 2060	#two human legs
+	addi $t6, $t8, 2068
+	beq $t8, $t7, take_a_life
+	beq $t6, $t8, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t8, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t8, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t8, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t8, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t8, take_a_life
+	addi $t7, $t7, 4
+	beq $t8, $t7, take_a_life
+	beq $t6, $t8, take_a_life
+	# along right side of monster
+	beq $s6, $s0, take_a_life
+	add $t8, $zero, $s6
+	add $t7, $zero, $s0
+	addi $t8, $t8, 288
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	# along left side of monster
+	beq $s6, $s0, take_a_life		#TEST THIS SIDE LATER
+	add $t8, $zero, $s6
+	add $t7, $zero, $s0
+	addi $t8, $t8, -8
+	addi $t7, $t7, -44
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	addi $t8, $t8, 256
+	beq $t8, $t7, take_a_life
+	
+	jr $ra
 
 take_a_life:
-li $a1, BASE_ADDRESS # $t0 stores the base address for display
-li $t8, 0xA77C38
-sw $t8, 16($a1)		# write back into memory into B
-j decrease_lives
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	li $t8, 0xA77C38
+	sw $t8, 16($a1)		# write back into memory into B
+	j decrease_lives
 
 decrease_lives:
-addi $t3, $t3, -1
-jal remove_carrot
-beqz $t3, your_dead
-j send_to_start
+	addi $t3, $t3, -1
+	jal remove_carrot
+	beqz $t3, your_dead
+	j send_to_start
 
 your_dead:
-li $a0, 0	#background
-addi $a0, $a0, BASE_ADDRESS
-li $t1, 0x10000 # save 256*256 pixels
-li $a1, 0
-li $a2, 0xffc0cb
-j end_scene
+	li $a0, 0	#background
+	addi $a0, $a0, BASE_ADDRESS
+	li $t1, 0x10000 # save 256*256 pixels
+	li $a1, 0
+	li $a2, 0xffc0cb
+	j end_scene
 
 
 remove_carrot:
-li $a1, BASE_ADDRESS
-la $a0, B
-la $t8, pink
-lw $t8, 0($t8)
-beq $t3, 2, remove_carrot_one
-beq $t3, 1, remove_carrot_two
-sw $t8, 488($a0)
-sw $t8, 744($a0)
-sw $t8, 1000($a0)
+	li $a1, BASE_ADDRESS
+	la $a0, B
+	la $t8, pink
+	lw $t8, 0($t8)
+	beq $t3, 2, remove_carrot_one
+	beq $t3, 1, remove_carrot_two
+	sw $t8, 488($a0)
+	sw $t8, 744($a0)
+	sw $t8, 1000($a0)
 
 remove_carrot_two:
-sw $t8, 476($a0)
-sw $t8, 732($a0)
-sw $t8, 988($a0)
+	sw $t8, 476($a0)
+	sw $t8, 732($a0)
+	sw $t8, 988($a0)
 
 remove_carrot_one:
-sw $t8, 464($a0)
-sw $t8, 720($a0)
-sw $t8, 976($a0)
-jr $ra
+	sw $t8, 464($a0)
+	sw $t8, 720($a0)
+	sw $t8, 976($a0)
+	jr $ra
 
 send_to_start:
 		# store the original layout on stack
-la $a0, B	# $a0 holds address of array B
-li $a1, BASE_ADDRESS # $t0 stores the base address for display
-li $a2, 0x10000 # save 256*256 pixels
+	la $a0, B	# $a0 holds address of array B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	li $a2, 0x10000 # save 256*256 pixels
 
-jal clear_background
-addi $s0, $zero, 12544
+	jal clear_background
+	addi $s0, $zero, 12544
 
 		# initial player creation
-li $a2, 0xFFE6C4
-add $a1, $s0, $zero
-addi $a1, $a1, BASE_ADDRESS
-jal player
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	addi $a1, $a1, BASE_ADDRESS
+	jal player
 
-j next_move
+	j next_move
 
 move_monster:
 	li	$v0, 32			# syscall sleep
 	addi	$a0, $zero, 60		# 60 ms
 	syscall
 	
-addi $sp, $sp, -4
-sw $ra, 0($sp)
-bgtz $t2, monster_right
-blez $t2, monster_left
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	bgtz $t2, monster_right
+	blez $t2, monster_left
 
 monster_right:
-la $a0, B	# $a0 holds address of array B
-li $a1, BASE_ADDRESS # $t0 stores the base address for display
-add $a1, $a1, $s6  # $s6 is monster address
-add $a0, $a0, $s6  # $t0 stores the base address for display
+	la $a0, B	# $a0 holds address of array B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	add $a1, $a1, $s6  # $s6 is monster address
+	add $a0, $a0, $s6  # $t0 stores the base address for display
 	
-jal clean_monster_right
-
-addi $s6, $s6, 4
-addi $t2, $t2, -4	
+	jal clean_monster_right
+	
+	addi $s6, $s6, 4
+	addi $t2, $t2, -4	
 		# initial cookie monster creation
-li $a2, 0x4587C0
-add $a1, $s6, $zero
-add $a1, $a1, $t0
-jal cookie_monster
-addi $a0, $a1, 284
-li $a1, 0xA77C38
-li $a2, 0x5D1A0F
-jal cookie
-lw $ra, 0($sp)
-addi $sp, $sp, 4
+	li $a2, 0x4587C0
+	add $a1, $s6, $zero
+	add $a1, $a1, $t0
+	jal cookie_monster
+	addi $a0, $a1, 284
+	li $a1, 0xA77C38
+	li $a2, 0x5D1A0F
+	jal cookie
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
 
-jr $ra
+	jr $ra
 
 
 monster_left:
-la $a0, B	# $a0 holds address of array B
-li $a1, BASE_ADDRESS # $t0 stores the base address for display
-add $a1, $a1, $s6  # $s6 is monster address
-add $a0, $a0, $s6  # $t0 stores the base address for display
+	la $a0, B	# $a0 holds address of array B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	add $a1, $a1, $s6  # $s6 is monster address
+	add $a0, $a0, $s6  # $t0 stores the base address for display
 
-jal clean_monster_left
+	jal clean_monster_left
 
-addi $s6, $s6, -4	
-addi $t2, $t2, -4	
+	addi $s6, $s6, -4	
+	addi $t2, $t2, -4	
 		# initial cookie monster creation
-li $a2, 0x4587C0
-add $a1, $s6, $zero
-add $a1, $a1, $t0
-jal cookie_monster
-addi $a0, $a1, 284
-li $a1, 0xA77C38
-li $a2, 0x5D1A0F
-jal cookie
-lw $ra, 0($sp)
+	li $a2, 0x4587C0
+	add $a1, $s6, $zero
+	add $a1, $a1, $t0
+	jal cookie_monster
+	addi $a0, $a1, 284
+	li $a1, 0xA77C38
+	li $a2, 0x5D1A0F
+	jal cookie
+	lw $ra, 0($sp)
 
-addi $sp, $sp, 4
-beq $t2, -184, reset_monster_movement
+	addi $sp, $sp, 4
+	beq $t2, -184, reset_monster_movement
 
-jr $ra
+	jr $ra
 
 reset_monster_movement:
-addi $t2, $zero, 184
-jr $ra
+	addi $t2, $zero, 184
+	jr $ra
 
 clean_monster_left:
-lw $t8, 16($a0)
-sw $t8, 16($a1)		# write back into memory into B
-lw $t8, 272($a0)
-sw $t8, 272($a1)		# write back into memory into B
-lw $t8, 296($a0)
-sw $t8, 296($a1)		# write back into memory into B
-lw $t8, 528($a0)
-sw $t8, 528($a1)		# write back into memory into B
-lw $t8, 556($a0)
-sw $t8, 556($a1)		# write back into memory into B
-lw $t8, 784($a0)
-sw $t8, 784($a1)		# write back into memory into B
-lw $t8, 812($a0)
-sw $t8, 812($a1)		# write back into memory into B
-lw $t8, 1068($a0)
-sw $t8, 1068($a1)		# write back into memory into B
-lw $t8, 1320($a0)
-sw $t8, 1320($a1)		# write back into memory into B
-lw $t8, 1300($a0)
-sw $t8, 1300($a1)		# write back into memory into B
-lw $t8, 1556($a0)
-sw $t8, 1556($a1)		# write back into memory into B
-lw $t8, 1812($a0)
-sw $t8, 1812($a1)		# write back into memory into B
-lw $t8, 2064($a0)
-sw $t8, 2064($a1)		# write back into memory into B
-lw $t8, 2048($a0)
-sw $t8, 2048($a1)		# write back into memory into B
-jr $ra
+	lw $t8, 16($a0)
+	sw $t8, 16($a1)		# write back into memory into B
+	lw $t8, 272($a0)
+	sw $t8, 272($a1)		# write back into memory into B
+	lw $t8, 296($a0)
+	sw $t8, 296($a1)		# write back into memory into B
+	lw $t8, 528($a0)
+	sw $t8, 528($a1)		# write back into memory into B
+	lw $t8, 556($a0)
+	sw $t8, 556($a1)		# write back into memory into B
+	lw $t8, 784($a0)
+	sw $t8, 784($a1)		# write back into memory into B
+	lw $t8, 812($a0)
+	sw $t8, 812($a1)		# write back into memory into B
+	lw $t8, 1068($a0)
+	sw $t8, 1068($a1)		# write back into memory into B
+	lw $t8, 1320($a0)
+	sw $t8, 1320($a1)		# write back into memory into B
+l	lw $t8, 1300($a0)
+	sw $t8, 1300($a1)		# write back into memory into B
+	lw $t8, 1556($a0)
+	sw $t8, 1556($a1)		# write back into memory into B
+	lw $t8, 1812($a0)
+	sw $t8, 1812($a1)		# write back into memory into B
+	lw $t8, 2064($a0)
+	sw $t8, 2064($a1)		# write back into memory into B
+	lw $t8, 2048($a0)
+	sw $t8, 2048($a1)		# write back into memory into B
+	jr $ra
 
 clean_monster_right:
-lw $t8, 0($a0)
-sw $t8, 0($a1)		# write back into memory into B
-lw $t8, 256($a0)
-sw $t8, 256($a1)		# write back into memory into B
-lw $t8, 288($a0)
-sw $t8, 288($a1)		# write back into memory into B
-lw $t8, 512($a0)
-sw $t8, 512($a1)		# write back into memory into B
-lw $t8, 540($a0)
-sw $t8, 540($a1)		# write back into memory into B
-lw $t8, 768($a0)
-sw $t8, 768($a1)		# write back into memory into B
-lw $t8, 1016($a0)
-sw $t8, 1016($a1)		# write back into memory into B
-lw $t8, 796($a0)
-sw $t8, 796($a1)		# write back into memory into B
-lw $t8, 1312($a0)
-sw $t8, 1312($a1)		# write back into memory into B
-lw $t8, 1276($a0)
-sw $t8, 1276($a1)		# write back into memory into B
-lw $t8, 1532($a0)
-sw $t8, 1532($a1)		# write back into memory into B
-lw $t8, 1788($a0)
-sw $t8, 1788($a1)		# write back into memory into B
-lw $t8, 2048($a0)
-sw $t8, 2048($a1)		# write back into memory into B
-lw $t8, 2064($a0)
-sw $t8, 2064($a1)		# write back into memory into B
+	lw $t8, 0($a0)
+	sw $t8, 0($a1)		# write back into memory into B
+	lw $t8, 256($a0)
+	sw $t8, 256($a1)		# write back into memory into B
+	lw $t8, 288($a0)
+	sw $t8, 288($a1)		# write back into memory into B
+	lw $t8, 512($a0)
+	sw $t8, 512($a1)		# write back into memory into B
+	lw $t8, 540($a0)
+	sw $t8, 540($a1)		# write back into memory into B
+	lw $t8, 768($a0)
+	sw $t8, 768($a1)		# write back into memory into B
+	lw $t8, 1016($a0)
+	sw $t8, 1016($a1)		# write back into memory into B
+	lw $t8, 796($a0)
+	sw $t8, 796($a1)		# write back into memory into B
+	lw $t8, 1312($a0)
+	sw $t8, 1312($a1)		# write back into memory into B
+	lw $t8, 1276($a0)
+	sw $t8, 1276($a1)		# write back into memory into B
+	lw $t8, 1532($a0)
+	sw $t8, 1532($a1)		# write back into memory into B
+	lw $t8, 1788($a0)
+	sw $t8, 1788($a1)		# write back into memory into B
+	lw $t8, 2048($a0)
+	sw $t8, 2048($a1)		# write back into memory into B
+	lw $t8, 2064($a0)
+	sw $t8, 2064($a1)		# write back into memory into B
 
-jr $ra
+	jr $ra
 
 check_above:
 add $t8, $a2, $a3
