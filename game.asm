@@ -72,6 +72,14 @@ lw $s1, 0($s1)		# load value of monster
 li $t2, 184 #monster movement
 la $t3, lives		# get lives
 lw $t3, 0($t3)		# num lives
+li $s7, 0	#if initialized
+
+jal set_background
+j start_page
+
+set_background:
+addi $sp, $sp, -4
+sw $ra, 0($sp)
 
 li $a0, 0	#background
 add $a0, $a0, $t0
@@ -125,14 +133,14 @@ add $a0, $a0, $t0
 li $a1, 65480
 jal platforms
 
-li $a0, 9256	#platform 2
+li $a0, 9236	#platform 2
 add $a0, $a0, $t0
-li $a1, 65491
+li $a1, 65480
 jal platforms
 
-li $a0, 6440	#platform 3
+li $a0, 6420	#platform 3
 add $a0, $a0, $t0
-li $a1, 65491
+li $a1, 65480
 jal platforms
 
 li $a0, 3604	#platform 4
@@ -140,6 +148,14 @@ add $a0, $a0, $t0
 li $a1, 65480
 jal platforms
 
+lw $ra, 0($sp)
+addi $sp, $sp, 4
+
+jr $ra
+
+
+initialize_game:
+jal set_background
 li $a2, 0x37969D
 li $a0, 12416	#ladder 1
 subi $a1, $a0, 256
@@ -255,7 +271,11 @@ keypress:
 	beq	$t5, 119, w_pressed	# if key press = 'w' branch to moveUp
 	beq	$t5, 115, s_pressed	# else if key press = 's' branch to moveDown=
 	beq	$t5, 112, p_pressed	# restart game if key press = 'p'
+	j next_move
 	
+l_pressed:
+jal initialize_game
+
 w_pressed:
 	
 	addi  $s3, $zero, -256		# s3 = make player be 256 higher
@@ -1012,14 +1032,373 @@ bgt $a2, $zero, load_background # repeat while there are still pixels left
 jr $ra
 
 
-# OBJECT CREATIONS
-side_border:
-sw $a2, 0($a0) # load brown color onto stack at specific position
-addi $a0, $a0, 256 # go to next address to color
-addi $t1, $t1, -1	# decrease number of uncolored pixel
-bgt $t1, $a1, side_border # repeat while there are still pixels left
-li $t1, 0x10000 # save 256*256 pixels 
-jr $ra
+
+
+#PAGE CREATIONS
+
+start_page:
+addi $a1, $zero, BASE_ADDRESS
+addi $a1, $a1, 1848
+li $t9, 0x000000 
+
+# eat - e
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)	
+sw $t9, 1032($a1)
+# eat - a
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1032($a1)
+# eat - t
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 260($a1)	
+sw $t9, 516($a1)	
+sw $t9, 772($a1)	
+sw $t9, 1028($a1)
+
+la $t9, blue
+lw $t9, 0($t9) 
+# your - y
+addi $a1, $a1, 28
+sw $t9, 0($a1)	
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)
+sw $t9, 516($a1)	
+sw $t9, 772($a1)	
+sw $t9, 1028($a1)
+# your - o
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+# your - u
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+# your - r
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1032($a1)
+
+li $t9, 0x000000 
+# vegetables - v
+addi $a1, $a1, 2656
+sw $t9, 0($a1)	
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)
+sw $t9, 512($a1)
+sw $t9, 520($a1)	
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1028($a1)
+# vegetables - e
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)	
+sw $t9, 1032($a1)
+# vegetables - g
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)	
+sw $t9, 512($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)	
+sw $t9, 776($a1)
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)	
+sw $t9, 1032($a1)
+# vegetables - e
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)	
+sw $t9, 1032($a1)
+# vegetables - t
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 260($a1)	
+sw $t9, 516($a1)	
+sw $t9, 772($a1)	
+sw $t9, 1028($a1)
+# vegetables - a
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1032($a1)
+# vegetables - b
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+# vegetables - l
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 256($a1)	
+sw $t9, 512($a1)			
+sw $t9, 768($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+# vegetables - e
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)	
+sw $t9, 1032($a1)
+# vegetables - s
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 520($a1)			
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)	
+sw $t9, 1032($a1)
+# carrot
+addi $a1, $a1, 20
+addi $a1, $a1, -1056
+jal carrot
+
+		# player creation
+li $a2, 0xFFE6C4
+li $t8, 9748
+add $a1, $t8, $t0
+jal player
+
+		# cookie monster creation
+li $a2, 0x4587C0
+li $t8, 7100
+add $a1, $t8, $t0
+jal cookie_monster
+addi $a0, $a1, 284
+li $a1, 0xA77C38
+li $a2, 0x5D1A0F
+jal cookie
+
+li, $a1, 13076
+add $a1, $a1, $t0
+
+la $t9, blue
+lw $t9, 0($t9) 
+# quotes - '
+sw $t9, 8($a1)	
+sw $t9, 264($a1)
+# l
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 256($a1)	
+sw $t9, 512($a1)			
+sw $t9, 768($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+#quotes - '
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 256($a1)
+
+li $t9, 0x000000 
+# to - t
+addi $a1, $a1, 28
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 260($a1)	
+sw $t9, 516($a1)	
+sw $t9, 772($a1)	
+sw $t9, 1028($a1)
+# to - o
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+
+# start - s
+addi $a1, $a1, 36
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 520($a1)			
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)	
+sw $t9, 1032($a1)
+# start - t
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 260($a1)	
+sw $t9, 516($a1)	
+sw $t9, 772($a1)	
+sw $t9, 1028($a1)
+# start - a
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1032($a1)
+# start - r
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 516($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1032($a1)
+# start - t
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 260($a1)	
+sw $t9, 516($a1)	
+sw $t9, 772($a1)	
+sw $t9, 1028($a1)
+
+
+li $t9, 0xffff0000		# get keypress from keyboard input
+lw $t8, 0($t9)
+beq $t8, 1, keypress_start
+j start_page
+
+
+keypress_start:
+lw $t5, 4($t9)
+
+li	$v0, 32			# syscall sleep
+addi	$a0, $zero, 60		# 60 ms
+syscall
+	
+lw $t5, 4($t9)
+beq	$t5, 108, l_pressed
+
+j start_page
+
 
 end_scene:
 sw $a2, 0($a0) # load brown color onto stack at specific position
@@ -1244,6 +1623,15 @@ jal cookie
 
 j END
 
+# OBJECT CREATIONS
+side_border:
+sw $a2, 0($a0) # load brown color onto stack at specific position
+addi $a0, $a0, 256 # go to next address to color
+addi $t1, $t1, -1	# decrease number of uncolored pixel
+bgt $t1, $a1, side_border # repeat while there are still pixels left
+li $t1, 0x10000 # save 256*256 pixels 
+jr $ra
+
 platforms:
 sw $a2, 0($a0) # load brown color onto stack at specific position
 sw $a2, 256($a0) # load brown color onto stack at specific position
@@ -1359,8 +1747,6 @@ jr $ra
 player:
 li $t9, 0xDBBE3D #yellow
 li $t8, 0xE70007 #red
-li $t7, 0x00AE00 #green
-li $t6, 0xFF9000 #orange
 li $t5, 0x000000 #black
 
 
@@ -1439,6 +1825,9 @@ sw $t8, 2060($a1) #body
 sw $t8, 1284($a1) #body arms
 sw $t8, 1308($a1) #body
 
+carrot:
+li $t7, 0x00AE00 #green
+li $t6, 0xFF9000 #orange
 sw $t6, 1312($a1) #carrot
 sw $t6, 1316($a1) #carrot
 sw $t6, 1320($a1) #carrot
