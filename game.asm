@@ -247,7 +247,7 @@ initialize_game:
 	li $a1, 0xA77C38
 	li $a2, 0x5D1A0F
 	jal cookie
-
+	
 
 game_loop:
 	jal move_monster
@@ -273,7 +273,7 @@ keypress:
 	
 l_pressed:
 	jal initialize_game
-
+	
 w_pressed:
 	
 	addi  $s3, $zero, -256		# s3 = make player be 256 higher
@@ -408,11 +408,72 @@ p_pressed:
 
 	next_move:
 	jal check_monster_player_location
+	jal check_gravity_needed
 	#j check_cookie_player_location
 	j 	game_loop		# loop back to beginning
 
 
 check_cookie_player_location:
+
+check_gravity_needed:
+	la $a1, pink
+	lw $a1, 0($a1)
+	la $a2, B
+	la $a3, ladder_colour
+	lw $a3, 0($a3)
+	add $t9, $a2, $s0
+	
+	lw $t8, 0($t9)
+	beq $a3, $t8, continue
+	lw $t8, 32($t9)
+	beq $a3, $t8, continue
+	lw $t8, 2064($t9)
+	beq $a3, $t8, continue
+	lw $t8, 1808($t9)
+	beq $a3, $t8, continue
+	lw $t8, 1552($t9)
+	beq $a3, $t8, continue
+	
+	lw $t8, 2316($t9)
+	beq $a1, $t8, first_leg_off
+	jr $ra
+
+continue:
+jr $ra
+
+first_leg_off:
+lw $t8, 2324($t9)
+beq $a1, $t8, gravity
+j continue
+
+gravity:
+	li	$v0, 32			# syscall sleep
+	addi	$a0, $zero, 60		# 60 ms
+	syscall
+	addi $s3, $zero, 256		# s3 = make player be 256 higher
+		
+	add $a3, $s0, $s3
+	la $a2, B
+	la $t8, brown
+	lw $t8, 0($t8)		# brown color
+	add $a1, $t8, $zero
+	jal check_down
+	beq $v1, 1, next_move
+	
+	la $a0, B	# $a0 holds address of array B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	add $a1, $a1, $s0  # $t0 stores the base address for display
+	add $a0, $a0, $s0  # $t0 stores the base address for display
+	add $s0, $s3, $s0		# update player position
+
+	jal clean_down
+	
+		# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	addi $a1, $a1, BASE_ADDRESS
+	jal player
+	j next_move
 
 
 end_loop:
