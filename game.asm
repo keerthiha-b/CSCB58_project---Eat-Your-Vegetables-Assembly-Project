@@ -38,7 +38,7 @@ size:	.word 0x10000					# number of pixels
 player_position:  .word 12552				# player start position
 monster_position: .word 1300				# monster start position
 num_cookies: .word 5					# number of cookies
-cookie_positions: .word 10652, 7728, 4192, 2176, 13520	# cookie start positions
+cookie_positions: .word 10700, 7720, 4192, 2176, 13520	# cookie start positions
 B: .word 0:65536					# array to hold background
 pink: .word 0xffc0cb					# pink colour for background
 str6: .asciiz "e\n"
@@ -133,12 +133,12 @@ set_background:
 
 	li $a0, 9260					# platform 2 - second from bottom
 	add $a0, $a0, $t0
-	li $a1, 65492
+	li $a1, 65495
 	jal platforms
 
-	li $a0, 6440					# platform 3 - 3rd from bottom
+	li $a0, 6444					# platform 3 - 3rd from bottom
 	add $a0, $a0, $t0
-	li $a1, 65492
+	li $a1, 65495
 	jal platforms
 
 	li $a0, 3604					# platform 4 - top most
@@ -162,28 +162,28 @@ initialize_game:
 	add $a1, $a1, $t0
 	jal ladder_vertical
 
-	li $a0, 9548	#ladder 2
+	li $a0, 9540	#ladder 2
 	subi $a1, $a0, 256
 	add $a0, $a0, $t0
 	jal ladder_horizontal
 	add $a1, $a1, $t0
 	jal ladder_vertical
 
-	li $a0, 9652	#ladder 3
+	li $a0, 9632	#ladder 3
 	subi $a1, $a0, 256
 	add $a0, $a0, $t0
 	jal ladder_horizontal
 	add $a1, $a1, $t0
 	jal ladder_vertical
 
-	li $a0, 6784	#ladder 4
+	li $a0, 6776	#ladder 4
 	subi $a1, $a0, 256
 	add $a0, $a0, $t0
 	jal ladder_horizontal
 	add $a1, $a1, $t0
 	jal ladder_vertical
 
-	li $a0, 4020	#ladder 5
+	li $a0, 4012	#ladder 5
 	subi $a1, $a0, 256
 	add $a0, $a0, $t0
 	jal ladder_horizontal
@@ -204,11 +204,11 @@ initialize_game:
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, 7728
+	li $a0, 7720
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, 10652
+	li $a0, 10700
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
