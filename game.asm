@@ -37,11 +37,11 @@
 size:	.word 0x10000					# number of pixels
 player_position:  .word 12552				# player start position
 monster_position: .word 1300				# monster start position
-cookie_positions: .word 10652, 7728, 4192, 2176, 13520	# cookie start positions
 num_cookies: .word 5					# number of cookies
+cookie_positions: .word 10652, 7728, 4192, 2176, 13520	# cookie start positions
 B: .word 0:65536					# array to hold background
 pink: .word 0xffc0cb					# pink colour for background
-str6: .asciiz "\n"
+str6: .asciiz "e\n"
 brown: .word 0x9a3f1d					# brown colour for platforms
 blue: .word 0x4587C0					# blue colour for cookie monster
 ladder_colour: .word 0x37969D				# ladder color
@@ -131,14 +131,14 @@ set_background:
 	li $a1, 65480
 	jal platforms
 
-	li $a0, 9236					# platform 2 - second from bottom
+	li $a0, 9260					# platform 2 - second from bottom
 	add $a0, $a0, $t0
-	li $a1, 65480
+	li $a1, 65492
 	jal platforms
 
-	li $a0, 6420					# platform 3 - 3rd from bottom
+	li $a0, 6440					# platform 3 - 3rd from bottom
 	add $a0, $a0, $t0
-	li $a1, 65480
+	li $a1, 65492
 	jal platforms
 
 	li $a0, 3604					# platform 4 - top most
@@ -413,40 +413,7 @@ p_pressed:
 
 
 check_cookie_player_location:
-	la $t4, cookie_positions
-	add $t8, $zero, $zero
-	la $t7, num_cookies
-	lw $t7, 0($t7)
-	addi $t9, $zero, 4
-	mult $t7, $t9		# get size of whole array
-	mflo $t7			# store total size
 
-loop_cookies:
-	bge $t8, $t7, end_loop 
-	add $t9, $t4, $t8	# get position in array
-	lw $t9, 0($t9)
-	li $v0, 1
-	move $t9, $v1		# number to print in $v1
-	syscall
-	    	    				# Print "\n"
-	li $v0, 4
-	la $a0, str6
-	syscall       
-	    
-	beq $t9, $s0, found_cookie
-	addi $t8, $t8, 4
-	j loop_cookies
-	j end_loop
-
-found_cookie:
-
-	la $a1, pink	#get rid of cookie
-	la $a2, pink
-	lw $a1, 0($a1)
-	lw $a2, 0($a2)
-	add $a0, $zero, $t9
-	addi $a0, $a0, BASE_ADDRESS
-	jal cookie
 
 end_loop:
 	j game_loop
@@ -736,7 +703,7 @@ clean_monster_left:
 	sw $t8, 1068($a1)		# write back into memory into B
 	lw $t8, 1320($a0)
 	sw $t8, 1320($a1)		# write back into memory into B
-l	lw $t8, 1300($a0)
+	lw $t8, 1300($a0)
 	sw $t8, 1300($a1)		# write back into memory into B
 	lw $t8, 1556($a0)
 	sw $t8, 1556($a1)		# write back into memory into B
