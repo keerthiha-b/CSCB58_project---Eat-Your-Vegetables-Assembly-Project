@@ -38,7 +38,7 @@ size:	.word 0x10000					# number of pixels
 player_position:  .word 12552				# player start position
 monster_position: .word 1300				# monster start position
 num_cookies: .word 5					# number of cookies
-cookie_positions: .word 10700, 7720, 4192, 2176, 13520	# cookie start positions
+cookie_positions: .word 10600, 7724, 4192, 2176, 13520	# cookie start positions
 B: .word 0:65536					# array to hold background
 pink: .word 0xffc0cb					# pink colour for background
 str6: .asciiz "e\n"
@@ -204,11 +204,11 @@ initialize_game:
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, 7720
+	li $a0, 7724
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, 10700
+	li $a0, 10600
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
