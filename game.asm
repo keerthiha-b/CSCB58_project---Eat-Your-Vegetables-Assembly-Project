@@ -35,8 +35,6 @@
 #####################################################################
 .data
 size:	.word 0x10000					# number of pixels
-player_position:  .word 12552				# player start position
-monster_position: .word 1300				# monster start position
 num_cookies: .word 5					# number of cookies
 cookie_positions: .word 10600, 7724, 4960, 2176, 13520
 FOUND: .word 0:5
@@ -60,22 +58,26 @@ main:
 # - Base Address for Display: 0x10008000 ($gp)
 #
 .eqv BASE_ADDRESS 0x10008000
-.eqv COOKIE1 10600
-.eqv COOKIE2 7724
-.eqv COOKIE3 4960
-.eqv COOKIE4 2176
-.eqv COOKIE5 13512
+.eqv COOKIE1 13512
+.eqv COOKIE2 10600
+.eqv COOKIE3 7724
+.eqv COOKIE4 4960
+.eqv COOKIE5 2176
+.eqv INITIAL_PLAYER 12552
+.eqv INITIAL_MONSTER 1300
+
+
 
 li $t0, BASE_ADDRESS 					# $t0 stores the base address for display
 li $t1, 0x10000 					# save 256*256 pixels
-la $s0, player_position					
-lw $s0, 0($s0)				# get location of player throughout the game
-la $s6, monster_position				
-lw $s6, 0($s6)						# get location of monster throughout the game
+li $s0, INITIAL_PLAYER			
+li $s6, INITIAL_MONSTER
 la $s2, B						# address of the background array					# get location of cookies throughout the game
 li $t2, 184 						# this is the furthest the monster will move right
 la $t3, lives						
 lw $t3, 0($t3)						# number of lives throughout the game
+li $s7, 1						# current level
+
 
 jal set_background					# set the background - line 79
 j start_page						# display the start page - line 1038
@@ -257,6 +259,11 @@ initialize_game:
 game_loop:
 	jal move_monster
 	jal check_monster_player_location
+	jal cookie_one
+	jal cookie_two
+	jal cookie_three
+	jal cookie_four
+	jal cookie_five
 	jal check_winner
 	
 	li $t9, 0xffff0000		# get keypress from keyboard input
@@ -409,10 +416,10 @@ p_pressed:
 	addi $a1, $a1, BASE_ADDRESS
 	jal player
 
-	j next_move
+	j main
 
 
-	next_move:
+next_move:
 	jal check_monster_player_location
 	jal check_gravity_needed
 	li $t9, COOKIE1
@@ -465,12 +472,127 @@ found_a_cookie:
 	li $a1, BASE_ADDRESS # $t0 stores the base address for display
 	li $a2, 0x10000 # save 256*256 pixels
 	jal load_background
-
-
+	j end_loop
 
 end_loop:
 	j game_loop
-	    	    				# Print "\n"
+
+check_winner:
+	li $t9, COOKIE1
+	li $a3, 0
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	addi $a1, $zero, BASE_ADDRESS
+	lw $t7, 4($a0)
+	la $a2, pink
+	lw $a2, 0($a2)
+	bne $a2, $t7, continue
+	li $t9, COOKIE2
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	lw $t7, 4($a0)
+	bne $a2, $t7, continue
+	li $t9, COOKIE3
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	lw $t7, 4($a0)
+	bne $a2, $t7, continue
+	li $t9, COOKIE4
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	lw $t7, 4($a0)
+	bne $a2, $t7, continue
+	li $t9, COOKIE5
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	lw $t7, 4($a0)
+	bne $a2, $t7, continue
+	li $a0, 0	#background
+	addi $a0, $a0, BASE_ADDRESS
+	li $t1, 0x10000 # save 256*256 pixels
+	li $a1, 0
+	li $a2, 0xffc0cb
+	beq $s7, 1, second_level
+	beq $s7, 2, third_level
+	j winner_page
+
+second_level:
+addi $s7, $s7, 1
+
+third_level:
+addi $s7, $s7, 1
+	
+cookie_one:
+	li $t9, COOKIE1
+	li $a3, 0
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	addi $a1, $zero, BASE_ADDRESS
+	lw $t7, 4($a0)
+	la $a2, pink
+	lw $a2, 0($a2)
+	bne $a2, $t7, continue
+	addi $a0, $zero, BASE_ADDRESS
+	addi $a0, $a0, 264
+	j mini_cookie
+	jr $ra
+cookie_two:
+	li $t9, COOKIE2
+	li $a3, 0
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	addi $a1, $zero, BASE_ADDRESS
+	lw $t7, 4($a0)
+	la $a2, pink
+	lw $a2, 0($a2)
+	bne $a2, $t7, continue
+	addi $a0, $zero, BASE_ADDRESS
+	addi $a0, $a0, 276
+	j mini_cookie
+	jr $ra
+cookie_three:
+	li $t9, COOKIE3
+	li $a3, 0
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	addi $a1, $zero, BASE_ADDRESS
+	lw $t7, 4($a0)
+	la $a2, pink
+	lw $a2, 0($a2)
+	bne $a2, $t7, continue
+	addi $a0, $zero, BASE_ADDRESS
+	addi $a0, $a0, 288
+	j mini_cookie
+	jr $ra
+cookie_four:
+	li $t9, COOKIE4
+	li $a3, 0
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	addi $a1, $zero, BASE_ADDRESS
+	lw $t7, 4($a0)
+	la $a2, pink
+	lw $a2, 0($a2)
+	bne $a2, $t7, continue
+	addi $a0, $zero, BASE_ADDRESS
+	addi $a0, $a0, 300
+	j mini_cookie
+	jr $ra
+cookie_five:
+	li $t9, COOKIE5
+	li $a3, 0
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	addi $a1, $zero, BASE_ADDRESS
+	lw $t7, 4($a0)
+	la $a2, pink
+	lw $a2, 0($a2)
+	bne $a2, $t7, continue
+	addi $a0, $zero, BASE_ADDRESS
+	addi $a0, $a0, 312
+	j mini_cookie
+	jr $ra
+	
 check_gravity_needed:
 	la $a1, pink
 	lw $a1, 0($a1)
@@ -1477,6 +1599,111 @@ beq	$t5, 108, l_pressed
 
 j start_page
 
+winner_page:
+	sw $a2, 0($a0) # load brown color onto stack at specific position
+	sw $a2, 256($a0) # load brown color onto stack at specific position
+	addi $a0, $a0, 4 # go to next address to color
+	addi $t1, $t1, -1	# decrease number of uncolored pixel
+
+	bgt $t1, $a1, winner_page # repeat while there are still pixels left
+
+	li $t1, 0x10000 # save 256*256 pixels 
+
+	# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	add $a1, $a1, $t0
+	jal player
+	
+	addi $a1, $zero, BASE_ADDRESS
+	addi $a1, $a1, 6160
+	li $t9, 0x000000 
+	
+	# you - y
+addi $a1, $a1, 28
+sw $t9, 0($a1)	
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)
+sw $t9, 516($a1)	
+sw $t9, 772($a1)	
+sw $t9, 1028($a1)
+# you - o
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+# you - u
+addi $a1, $a1, 20
+sw $t9, 0($a1)	
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+
+#win - w
+addi $a1, $a1, 40
+sw $t9, 0($a1)	
+sw $t9, 8($a1)
+sw $t9, 16($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)
+sw $t9, 272($a1)
+sw $t9, 512($a1)
+sw $t9, 520($a1)
+sw $t9, 528($a1)	
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 784($a1)		
+sw $t9, 1024($a1)
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+sw $t9, 1036($a1)
+sw $t9, 1040($a1)
+# win = i
+addi $a1, $a1, 28
+sw $t9, 4($a1)
+sw $t9, 260($a1)
+sw $t9, 516($a1)
+sw $t9, 772($a1)
+sw $t9, 1028($a1)
+# win - n
+addi $a1, $a1, 20
+sw $t9, 0($a1)
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 256($a1)
+sw $t9, 264($a1)	
+sw $t9, 512($a1)
+sw $t9, 520($a1)			
+sw $t9, 768($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1032($a1)
+
+# carrot
+addi $a1, $a1, 20
+addi $a1, $a1, -1056
+jal carrot
+
+	
+	j END
 
 end_scene:
 sw $a2, 0($a0) # load brown color onto stack at specific position
@@ -1940,6 +2167,14 @@ add $v1, $a1, $zero	#store address
 
 jr $ra
 
+mini_cookie:
+li $a1, 0xA77C38
+li $a2, 0x5D1A0F
+sw $a1, 0($a0)
+sw $a1, 260($a0)
+sw $a2, 4($a0)
+sw $a2, 256($a0)
+j continue
 
 END:
 li $v0, 10	# exit the program
