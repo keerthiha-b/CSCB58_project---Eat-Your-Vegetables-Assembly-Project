@@ -38,7 +38,8 @@ size:	.word 0x10000					# number of pixels
 player_position:  .word 12552				# player start position
 monster_position: .word 1300				# monster start position
 num_cookies: .word 5					# number of cookies
-cookie_positions: .word 10600, 7724, 4192, 2176, 13520	# cookie start positions
+cookie_positions: .word 10600, 7724, 4960, 2176, 13520
+FOUND: .word 0:5
 B: .word 0:65536					# array to hold background
 pink: .word 0xffc0cb					# pink colour for background
 str6: .asciiz "e\n"
@@ -59,16 +60,19 @@ main:
 # - Base Address for Display: 0x10008000 ($gp)
 #
 .eqv BASE_ADDRESS 0x10008000
+.eqv COOKIE1 10600
+.eqv COOKIE2 7724
+.eqv COOKIE3 4960
+.eqv COOKIE4 2176
+.eqv COOKIE5 13512
 
 li $t0, BASE_ADDRESS 					# $t0 stores the base address for display
 li $t1, 0x10000 					# save 256*256 pixels
 la $s0, player_position					
-lw $s0, 0($s0)						# get location of player throughout the game
+lw $s0, 0($s0)				# get location of player throughout the game
 la $s6, monster_position				
 lw $s6, 0($s6)						# get location of monster throughout the game
-la $s2, B						# address of the background array
-la $s1, cookie_positions				
-lw $s1, 0($s1)						# get location of cookies throughout the game
+la $s2, B						# address of the background array					# get location of cookies throughout the game
 li $t2, 184 						# this is the furthest the monster will move right
 la $t3, lives						
 lw $t3, 0($t3)						# number of lives throughout the game
@@ -183,35 +187,36 @@ initialize_game:
 	add $a1, $a1, $t0
 	jal ladder_vertical
 
-	li $a0, 4012	#ladder 5
+	li $a0, 4000	#ladder 5
 	subi $a1, $a0, 256
 	add $a0, $a0, $t0
 	jal ladder_horizontal
 	add $a1, $a1, $t0
 	jal ladder_vertical
-
+	
 	li $a1, 0xA77C38
 	li $a2, 0x5D1A0F
-	li $a0, 13520  #5 cookies
+	li $a0, COOKIE1  #5 cookies
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, 2176
+	li $a0, COOKIE2
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, 4960
+	li $a0, COOKIE3
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, 7724
+	li $a0, COOKIE4
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, 10600
+	li $a0, COOKIE5
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
-
+	
+	
 	li $a1, 464	#mini carrot
 	addi $a1, $a1, BASE_ADDRESS
 	jal mini_carrot
@@ -230,7 +235,7 @@ initialize_game:
 	li $a2, 0x10000 # save 256*256 pixels
 
 	jal load_background
-
+	
 
 		# initial player creation
 	li $a2, 0xFFE6C4
@@ -252,6 +257,7 @@ initialize_game:
 game_loop:
 	jal move_monster
 	jal check_monster_player_location
+	jal check_winner
 	
 	li $t9, 0xffff0000		# get keypress from keyboard input
 	lw $t8, 0($t9)
@@ -409,12 +415,62 @@ p_pressed:
 	next_move:
 	jal check_monster_player_location
 	jal check_gravity_needed
-	#j check_cookie_player_location
+	li $t9, COOKIE1
+	jal check_cookie_player_location
+	li $t9, COOKIE2
+	jal check_cookie_player_location
+	li $t9, COOKIE3
+	jal check_cookie_player_location
+	li $t9, COOKIE4
+	jal check_cookie_player_location
+	li $t9, COOKIE5
+	jal check_cookie_player_location
 	j 	game_loop		# loop back to beginning
 
 
-check_cookie_player_location:
 
+
+
+check_cookie_player_location:
+	addi $t8, $s0, 768
+	beq $t8, $t9, is_it_found
+	addi $t7, $t9, 16
+	addi $t8, $t8, 820
+	beq $t8, $t9, is_it_found
+	jr $ra
+
+is_it_found:
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	addi $a1, $zero, BASE_ADDRESS
+	lw $t7, 8($a0)
+	la $a2, pink
+	lw $a2, 0($a2)
+	bne $a2, $t7, found_a_cookie
+	jr $ra
+		
+found_a_cookie:
+	la $a0, B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	li $a2, 0x10000 # save 256*256 pixels
+	jal clear_background
+	la $a1, pink	#get rid of cookie
+	la $a2, pink
+	lw $a1, 0($a1)
+	lw $a2, 0($a2)
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	jal cookie
+	la $a0, B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	li $a2, 0x10000 # save 256*256 pixels
+	jal load_background
+
+
+
+end_loop:
+	j game_loop
+	    	    				# Print "\n"
 check_gravity_needed:
 	la $a1, pink
 	lw $a1, 0($a1)
@@ -474,10 +530,6 @@ gravity:
 	addi $a1, $a1, BASE_ADDRESS
 	jal player
 	j next_move
-
-
-end_loop:
-	j game_loop
 
 check_monster_player_location:
 	#approaching her left
