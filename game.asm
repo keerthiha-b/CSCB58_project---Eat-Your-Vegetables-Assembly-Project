@@ -64,19 +64,21 @@ main:
 .eqv COOKIE4 4960
 .eqv COOKIE5 2176
 .eqv INITIAL_PLAYER 12552
+.eqv INITIAL_PLAYER_2 1300
 .eqv INITIAL_MONSTER 1300
-
+.eqv INITIAL_MONSTER_2 6932
+.eqv INITIAL_MONSTER_3 9748
 
 
 li $t0, BASE_ADDRESS 					# $t0 stores the base address for display
 li $t1, 0x10000 					# save 256*256 pixels
 li $s0, INITIAL_PLAYER			
-li $s6, INITIAL_MONSTER
-la $s2, B						# address of the background array					# get location of cookies throughout the game
+li $s6, INITIAL_MONSTER				# address of the background array					# get location of cookies throughout the game
 li $t2, 184 						# this is the furthest the monster will move right
 la $t3, lives						
 lw $t3, 0($t3)						# number of lives throughout the game
-li $s7, 1						# current level
+li $s7, 1	
+li $t4, 60					# current level
 
 
 jal set_background					# set the background - line 79
@@ -230,12 +232,17 @@ initialize_game:
 	li $a1, 488
 	addi $a1, $a1, BASE_ADDRESS
 	jal mini_carrot
+	
+	add $a1, $zero, $t0
+	addi $a1, $a1, 15216	
+	jal level_display
 
 		# store the original layout on stack
 	la $a0, B	# $a0 holds address of array B
 	li $a1, BASE_ADDRESS # $t0 stores the base address for display
 	li $a2, 0x10000 # save 256*256 pixels
 
+	
 	jal load_background
 	
 
@@ -244,7 +251,7 @@ initialize_game:
 	add $a1, $s0, $zero
 	add $a1, $a1, $t0
 	jal player
-
+	
 		# initial cookie monster creation
 	li $a2, 0x4587C0
 	add $a1, $s6, $zero
@@ -255,7 +262,8 @@ initialize_game:
 	li $a2, 0x5D1A0F
 	jal cookie
 	
-
+	j game_loop
+	
 game_loop:
 	jal move_monster
 	jal check_monster_player_location
@@ -512,16 +520,36 @@ check_winner:
 	li $t1, 0x10000 # save 256*256 pixels
 	li $a1, 0
 	li $a2, 0xffc0cb
-	beq $s7, 1, second_level
-	beq $s7, 2, third_level
+	beq $s7, 1, level_two
+	beq $s7, 2, level_three
 	j winner_page
-
-second_level:
-addi $s7, $s7, 1
-
-third_level:
-addi $s7, $s7, 1
 	
+level_two:
+li $s7, 2
+li $t0, BASE_ADDRESS 					# $t0 stores the base address for display
+li $t1, 0x10000 					# save 256*256 pixels
+li $s0, INITIAL_PLAYER			
+li $s6, INITIAL_MONSTER_2					# address of the background array					# get location of cookies throughout the game
+li $t2, 184 						# this is the furthest the monster will move right
+la $t3, lives						
+lw $t3, 0($t3)	
+li $t4, 60		
+jal set_background
+j initialize_game
+	
+level_three:
+li $s7, 3
+li $t0, BASE_ADDRESS 					# $t0 stores the base address for display
+li $t1, 0x10000 					# save 256*256 pixels
+li $s0, INITIAL_PLAYER_2		
+li $s6, INITIAL_MONSTER_3					# address of the background array					# get location of cookies throughout the game
+li $t2, 184 						# this is the furthest the monster will move right
+la $t3, lives						
+lw $t3, 0($t3)	
+li $t4, 30	
+jal set_background
+j initialize_game
+
 cookie_one:
 	li $t9, COOKIE1
 	li $a3, 0
@@ -856,7 +884,7 @@ send_to_start:
 
 move_monster:
 	li	$v0, 32			# syscall sleep
-	addi	$a0, $zero, 60		# 60 ms
+	add	$a0, $zero, $t4		# 60 ms
 	syscall
 	
 	addi $sp, $sp, -4
@@ -2175,6 +2203,76 @@ sw $a1, 260($a0)
 sw $a2, 4($a0)
 sw $a2, 256($a0)
 j continue
+
+level_display:
+la $t9, blue
+lw $t9, 0($t9)
+beq $s7, 1, l1
+beq $s7, 2, l2
+beq $s7, 3, l3
+
+l1:
+
+sw $t9, 0($a1)	
+sw $t9, 256($a1)	
+sw $t9, 512($a1)			
+sw $t9, 768($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+
+addi $a1, $a1, 24
+sw $t9, 4($a1)
+sw $t9, 260($a1)
+sw $t9, 516($a1)
+sw $t9, 772($a1)
+sw $t9, 1028($a1)
+jr $ra
+
+l2:
+sw $t9, 0($a1)	
+sw $t9, 256($a1)	
+sw $t9, 512($a1)			
+sw $t9, 768($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+
+addi $a1, $a1, 28
+sw $t9, 0($a1)
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 264($a1)
+sw $t9, 516($a1)
+sw $t9, 512($a1)
+sw $t9, 520($a1)
+sw $t9, 768($a1)
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+jr $ra
+
+l3:
+sw $t9, 0($a1)	
+sw $t9, 256($a1)	
+sw $t9, 512($a1)			
+sw $t9, 768($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+addi $a1, $a1, 28
+sw $t9, 0($a1)	
+sw $t9, 4($a1)
+sw $t9, 8($a1)
+sw $t9, 264($a1)	
+sw $t9, 516($a1)
+sw $t9, 520($a1)
+sw $t9, 776($a1)	
+sw $t9, 1024($a1)
+sw $t9, 1028($a1)
+sw $t9, 1032($a1)
+jr $ra
+
 
 END:
 li $v0, 10	# exit the program
