@@ -40,6 +40,7 @@ cookie_positions: .word 10600, 7724, 4960, 2176, 13520
 FOUND: .word 0:5
 B: .word 0:65536					# array to hold background
 pink: .word 0xffc0cb					# pink colour for background
+yellow: .word 0xDBBE3D
 str6: .asciiz "e\n"
 brown: .word 0x9a3f1d					# brown colour for platforms
 blue: .word 0x4587C0					# blue colour for cookie monster
@@ -443,16 +444,15 @@ next_move:
 	j 	game_loop		# loop back to beginning
 
 
-
-
-
 check_cookie_player_location:
-	addi $t8, $s0, 768
-	beq $t8, $t9, is_it_found
 	addi $t7, $t9, 16
-	addi $t8, $t8, 820
+	addi $t8, $s0, 768
+	beq $t8, $t7, is_it_found
+	#addi $t7, $t9, 16
+	addi $t8, $s0, 820
 	beq $t8, $t9, is_it_found
 	jr $ra
+
 
 is_it_found:
 	add $a0, $zero, $t9
@@ -460,6 +460,11 @@ is_it_found:
 	addi $a1, $zero, BASE_ADDRESS
 	lw $t7, 8($a0)
 	la $a2, pink
+	lw $a2, 0($a2)
+	bne $a2, $t7, case_two
+	jr $ra
+case_two:
+	la $a2, yellow
 	lw $a2, 0($a2)
 	bne $a2, $t7, found_a_cookie
 	jr $ra
@@ -480,6 +485,11 @@ found_a_cookie:
 	li $a1, BASE_ADDRESS # $t0 stores the base address for display
 	li $a2, 0x10000 # save 256*256 pixels
 	jal load_background
+			# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	addi $a1, $a1, BASE_ADDRESS
+	jal player
 	j end_loop
 
 end_loop:
@@ -1744,7 +1754,7 @@ li $t1, 0x10000 # save 256*256 pixels
 #addi $t8, $t8, 32768
 		# initial cookie monster creation
 li $a2, 0x4587C0
-add $a1, $s6, $zero
+addi $a1, $zero, 1300
 add $a1, $a1, $t0
 jal cookie_monster
 addi $a0, $a1, 284
