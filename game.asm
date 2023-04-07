@@ -79,12 +79,12 @@ li $t1, 0x10000 					# save 256*256 pixels
 li $s0, INITIAL_PLAYER					# player location at start
 li $s6, INITIAL_MONSTER					# cookie monster location at start
 li $t2, 184 						# this is the furthest the monster will move right
-li $s4, 184 						# moving carrot
 la $t3, lives						
 lw $t3, 0($t3)						# number of lives throughout the game
 li $s7, 1	
 li $t4, 60						# current level
-
+li $s4, COOKIE1						# moving cookie
+li $s5, 0						# moving cookie distance - furthest 
 
 jal set_background					# set the background - line 79
 j start_page						# display the start page - line 1038
@@ -269,17 +269,106 @@ initialize_game:
 	jal cookie
 	
 	j game_loop
+
+level_three_initialize_game:
+	jal set_background
+	li $a2, 0x37969D
+	li $a0, 12416					#ladder 1
+	subi $a1, $a0, 256
+	add $a0, $a0, $t0
+	jal ladder_horizontal
+	add $a1, $a1, $t0
+	jal ladder_vertical
+
+	li $a0, 9540					#ladder 2
+	subi $a1, $a0, 256
+	add $a0, $a0, $t0
+	jal ladder_horizontal
+	add $a1, $a1, $t0
+	jal ladder_vertical
+
+	li $a0, 6776					#ladder 3
+	subi $a1, $a0, 256
+	add $a0, $a0, $t0
+	jal ladder_horizontal
+	add $a1, $a1, $t0
+	jal ladder_vertical
+
+	li $a0, 4000					#ladder 4
+	subi $a1, $a0, 256
+	add $a0, $a0, $t0
+	jal ladder_horizontal
+	add $a1, $a1, $t0
+	jal ladder_vertical
 	
+	
+	li $a1, 464					# mini carrot life 1
+	addi $a1, $a1, BASE_ADDRESS
+	jal mini_carrot
+
+	li $a1, 476					# mini carrot life 2
+	addi $a1, $a1, BASE_ADDRESS
+	jal mini_carrot
+
+	li $a1, 488					# mini carrot life 3
+	addi $a1, $a1, BASE_ADDRESS
+	jal mini_carrot
+	
+	add $a1, $zero, $t0				# display level number
+	addi $a1, $a1, 15216	
+	jal level_display
+
+							# store the original layout on stack
+	la $a0, B					# $a0 holds address of array B
+	li $a1, BASE_ADDRESS 				# $t0 stores the base address for display
+	li $a2, 0x10000 				# save 256*256 pixels
+
+	
+	jal load_background				# save background array
+	
+
+							# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	add $a1, $a1, $t0
+	jal player
+	
+							# initial cookie monster creation
+	li $a2, 0x4587C0
+	add $a1, $s6, $zero
+	add $a1, $a1, $t0
+	jal cookie_monster
+	addi $a0, $a1, 284
+	li $a1, 0xA77C38
+	li $a2, 0x5D1A0F
+	jal cookie
+	
+	li $a1, 0xA77C38
+	li $a2, 0x5D1A0F  
+	add $a0, $s4, $zero				# moving cookie
+	addi $a0, $a0, BASE_ADDRESS
+	jal cookie
+	
+	
+	j game_loop
+
 game_loop:
 	jal move_monster				# move the monster
 	jal check_monster_player_location		# check if the monster is touching the player
+	jal remove_carrot
+	beq $s7, 3, level_three_round
 	jal cookie_one					# check if the player is touching a cookie and if so, add to the display
 	jal cookie_two
 	jal cookie_three
 	jal cookie_four
 	jal cookie_five
 	jal check_winner				# check if all 5 cookies have been earned
+level_three_round:
+	bne $s7, 3, all_levels
+	jal move_cookie
+	jal check_level_three_winner		# check if the monster is touching the player
 	
+all_levels:
 	li $t9, 0xffff0000				# get keypress from keyboard input
 	lw $t8, 0($t9)
 	beq $t8, 1, keypress
@@ -559,9 +648,10 @@ li $s6, INITIAL_MONSTER_3				# new monster address				# get location of cookies 
 li $t2, 184 						# this is the furthest the monster will move right
 la $t3, lives						
 lw $t3, 0($t3)	
-li $t4, 30	
+li $t4, 15	
+li $s4, COOKIE1
 jal set_background
-j initialize_game
+j level_three_initialize_game
 
 cookie_one:						# check if cookie 1 is caught - if it is then add a cookie to display
 	li $t9, COOKIE1
@@ -693,6 +783,249 @@ gravity:
 	addi $a1, $a1, BASE_ADDRESS
 	jal player
 	j next_move
+
+check_level_three_winner:
+	#approaching her left
+	beq $s4, $s0, check_winner
+	add $t8, $zero, $s4
+	addi $t7, $s0, 768
+	addi $t8, $t8, 4
+	beq $t8, $t7, check_winner
+	addi $t8, $t8, 4
+	beq $t8, $t7, check_winner
+	addi $t8, $t8, 4
+	beq $t8, $t7, check_winner
+	addi $t8, $t8, 4
+	beq $t8, $t7, check_winner
+	addi $t8, $t8, 4
+	beq $t8, $t7, check_winner
+	#approaching her right
+	add $t8, $zero, $s4
+	addi $t7, $s0, 768
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	#approaching her legs			#TEST FOR LATER LEVELS!!!!
+	add $t8, $zero, $s4
+	add $t7, $zero, $s0
+	addi $t7, $t7, 2060	#two human legs
+	addi $t6, $t8, 2068
+	beq $t8, $t7, check_winner
+	beq $t6, $t8, check_winner
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	beq $t6, $t8, check_winner
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	beq $t6, $t8, check_winner
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	beq $t6, $t8, check_winner
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	beq $t6, $t8, check_winner
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	beq $t6, $t8, check_winner
+	addi $t7, $t7, 4
+	beq $t8, $t7, check_winner
+	beq $t6, $t8, check_winner
+	# along right side of monster
+	beq $s4, $s0, check_winner
+	add $t8, $zero, $s4
+	addi $t8, $t8, 16
+	add $t7, $zero, $s0
+	addi $t8, $t8, 256
+	beq $t8, $t7, check_winner
+	addi $t8, $t8, 256
+	beq $t8, $t7, check_winner
+	addi $t8, $t8, 256
+	beq $t8, $t7, check_winner
+	addi $t8, $t8, 256
+	beq $t8, $t7, check_winner
+	# along left side of monster
+	beq $s4, $s0, check_winner
+	add $t8, $zero, $s4
+	add $t7, $zero, $s0
+	addi $t8, $t8, 256
+	beq $t8, $t7, check_winner
+	addi $t8, $t8, 256
+	beq $t8, $t7, check_winner
+	addi $t8, $t8, 256
+	beq $t8, $t7, check_winner
+	addi $t8, $t8, 256
+	beq $t8, $t7, check_winner
+	
+	jr $ra
+
+take_a_life:
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	li $t8, 0xA77C38
+	sw $t8, 16($a1)		# write back into memory into B
+	j decrease_lives
+
+decrease_lives:
+	addi $t3, $t3, -1
+	jal remove_carrot
+	beqz $t3, your_dead
+	j send_to_start
+
+your_dead:
+jal cookie_one					# check if the player is touching a cookie and if so, add to the display
+jal cookie_two
+jal cookie_three
+jal cookie_four
+jal cookie_five
+	li $a0, 1280	#background
+	addi $a0, $a0, BASE_ADDRESS
+	li $t1, 0x10000 # save 256*256 pixels
+	li $a1, 1280
+	li $a2, 0xffc0cb
+	j end_scene
+
+
+remove_carrot:
+	li $a1, BASE_ADDRESS
+	la $a0, B
+	la $t8, pink
+	lw $t8, 0($t8)
+	beq $t3, 3, continue
+	beq $t3, 2, remove_carrot_one
+	beq $t3, 1, remove_carrot_two
+	sw $t8, 488($a0)
+	sw $t8, 744($a0)
+	sw $t8, 1000($a0)
+	
+
+remove_carrot_two:
+	sw $t8, 476($a0)
+	sw $t8, 732($a0)
+	sw $t8, 988($a0)
+
+remove_carrot_one:
+	sw $t8, 464($a0)
+	sw $t8, 720($a0)
+	sw $t8, 976($a0)
+	jr $ra
+
+send_to_start:
+		# store the original layout on stack
+	la $a0, B	# $a0 holds address of array B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	li $a2, 0x10000 # save 256*256 pixels
+
+	jal clear_background
+	beq $s7, 3, reset_two
+	addi $s0, $zero, INITIAL_PLAYER
+		# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	addi $a1, $a1, BASE_ADDRESS
+	jal player
+
+	j next_move
+
+reset_two:
+	addi $s0, $zero, INITIAL_PLAYER_2
+			# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	addi $a1, $a1, BASE_ADDRESS
+	jal player
+
+	j next_move
+
+move_cookie:
+	li	$v0, 32			# syscall sleep
+	add	$a0, $zero, $t4		# 60 ms
+	syscall
+	
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	bgtz $s5, cookie_right
+	blez $s5, cookie_left
+	
+cookie_right:
+	la $a0, B	# $a0 holds address of array B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	add $a1, $a1, $s4  # $s4 is cookie address
+	add $a0, $a0, $s4  # $t0 stores the base address for display
+	
+	jal clean_cookie_left
+	
+	addi $s4, $s4, 4
+	addi $s5, $s5, -4	
+
+	li $a1, 0xA77C38
+	li $a2, 0x5D1A0F  
+	add $a0, $s4, $zero				# moving cookie
+	addi $a0, $a0, BASE_ADDRESS
+	jal cookie
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	jr $ra
+
+
+cookie_left:
+	la $a0, B	# $a0 holds address of array B
+	li $a1, BASE_ADDRESS # $t0 stores the base address for display
+	add $a1, $a1, $s4  # $s4 is cookie address
+	add $a0, $a0, $s4  # $t0 stores the base address for display
+	
+	jal clean_cookie_right
+	
+	addi $s4, $s4, -4
+	addi $s5, $s5, -4	
+
+	li $a1, 0xA77C38
+	li $a2, 0x5D1A0F  
+	add $a0, $s4, $zero				# moving cookie
+	addi $a0, $a0, BASE_ADDRESS
+	jal cookie
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	beq $s5, -184, reset_cookie_movement
+
+	jr $ra
+	
+reset_cookie_movement:
+	addi $s5, $zero, 184
+	jr $ra
+
+clean_cookie_right:
+	lw $t8, 12($a0)
+	sw $t8, 12($a1)		# write back into memory into B
+	lw $t8, 272($a0)
+	sw $t8, 272($a1)		# write back into memory into B
+	lw $t8, 528($a0)
+	sw $t8, 528($a1)		# write back into memory into B
+	lw $t8, 784($a0)
+	sw $t8, 784($a1)		# write back into memory into B
+	lw $t8, 1036($a0)
+	sw $t8, 1036($a1)		# write back into memory into B
+	jr $ra
+
+clean_cookie_left:
+	lw $t8, 4($a0)
+	sw $t8, 4($a1)		# write back into memory into B
+	lw $t8, 256($a0)
+	sw $t8, 256($a1)		# write back into memory into B
+	lw $t8, 512($a0)
+	sw $t8, 512($a1)		# write back into memory into B
+	lw $t8, 768($a0)
+	sw $t8, 768($a1)		# write back into memory into B
+	lw $t8, 1028($a0)
+	sw $t8, 1028($a1)		# write back into memory into B
+	jr $ra
+
 
 check_monster_player_location:
 	#approaching her left
@@ -835,80 +1168,10 @@ check_monster_player_location:
 	
 	jr $ra
 
-take_a_life:
-	li $a1, BASE_ADDRESS # $t0 stores the base address for display
-	li $t8, 0xA77C38
-	sw $t8, 16($a1)		# write back into memory into B
-	j decrease_lives
-
-decrease_lives:
-	addi $t3, $t3, -1
-	jal remove_carrot
-	beqz $t3, your_dead
-	j send_to_start
-
-your_dead:
-jal cookie_one					# check if the player is touching a cookie and if so, add to the display
-jal cookie_two
-jal cookie_three
-jal cookie_four
-jal cookie_five
-	li $a0, 1280	#background
-	addi $a0, $a0, BASE_ADDRESS
-	li $t1, 0x10000 # save 256*256 pixels
-	li $a1, 1280
-	li $a2, 0xffc0cb
-	j end_scene
 
 
-remove_carrot:
-	li $a1, BASE_ADDRESS
-	la $a0, B
-	la $t8, pink
-	lw $t8, 0($t8)
-	beq $t3, 2, remove_carrot_one
-	beq $t3, 1, remove_carrot_two
-	sw $t8, 488($a0)
-	sw $t8, 744($a0)
-	sw $t8, 1000($a0)
 
-remove_carrot_two:
-	sw $t8, 476($a0)
-	sw $t8, 732($a0)
-	sw $t8, 988($a0)
 
-remove_carrot_one:
-	sw $t8, 464($a0)
-	sw $t8, 720($a0)
-	sw $t8, 976($a0)
-	jr $ra
-
-send_to_start:
-		# store the original layout on stack
-	la $a0, B	# $a0 holds address of array B
-	li $a1, BASE_ADDRESS # $t0 stores the base address for display
-	li $a2, 0x10000 # save 256*256 pixels
-
-	jal clear_background
-	beq $s7, 3, reset_two
-	addi $s0, $zero, INITIAL_PLAYER
-		# initial player creation
-	li $a2, 0xFFE6C4
-	add $a1, $s0, $zero
-	addi $a1, $a1, BASE_ADDRESS
-	jal player
-
-	j next_move
-
-reset_two:
-	addi $s0, $zero, INITIAL_PLAYER_2
-			# initial player creation
-	li $a2, 0xFFE6C4
-	add $a1, $s0, $zero
-	addi $a1, $a1, BASE_ADDRESS
-	jal player
-
-	j next_move
 move_monster:
 	li	$v0, 32			# syscall sleep
 	add	$a0, $zero, $t4		# 60 ms
@@ -918,6 +1181,7 @@ move_monster:
 	sw $ra, 0($sp)
 	bgtz $t2, monster_right
 	blez $t2, monster_left
+
 
 monster_right:
 	la $a0, B	# $a0 holds address of array B
