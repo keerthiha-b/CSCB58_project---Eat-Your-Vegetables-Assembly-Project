@@ -12,15 +12,18 @@
 # - Display height in pixels: 256 (update this as needed)
 # - Base Address for Display: 0x10008000 ($gp)
 #
-# Which milestones have been reached in this submission?
+# Which milestones have been reached in this submission? 
 # (See the assignment handout for descriptions of the milestones)
-# - Milestone 1/2/3 (choose the one the applies)
+# - Milestone 1,2 and 3 (choose the one the applies)
 #
 # Which approved features have been implemented for milestone 3?
 # (See the assignment handout for the list of additional features)
-# 1. (fill in the feature, if any)
-# 2. (fill in the feature, if any)
-# 3. (fill in the feature, if any)
+# 1. Health/score
+# 2. Fail condition
+# 3. Win condition
+# 4. Moving objects - enemy
+# 5. Different levels
+# 6. Start menu
 # ... (add more if necessary)
 #
 # Link to video demonstration for final submission:
@@ -59,12 +62,12 @@ main:
 # - Base Address for Display: 0x10008000 ($gp)
 #
 .eqv BASE_ADDRESS 0x10008000
-.eqv COOKIE1 13512
-.eqv COOKIE2 10600
+.eqv COOKIE1 13512					# cookie locations
+.eqv COOKIE2 10600		
 .eqv COOKIE3 7724
 .eqv COOKIE4 4960
 .eqv COOKIE5 2176
-.eqv INITIAL_PLAYER 12552
+.eqv INITIAL_PLAYER 12552				# player and monster start locations (different for different levels)
 .eqv INITIAL_PLAYER_2 1300
 .eqv INITIAL_MONSTER 1300
 .eqv INITIAL_MONSTER_2 6932
@@ -73,13 +76,14 @@ main:
 
 li $t0, BASE_ADDRESS 					# $t0 stores the base address for display
 li $t1, 0x10000 					# save 256*256 pixels
-li $s0, INITIAL_PLAYER			
-li $s6, INITIAL_MONSTER				# address of the background array					# get location of cookies throughout the game
+li $s0, INITIAL_PLAYER					# player location at start
+li $s6, INITIAL_MONSTER					# cookie monster location at start
 li $t2, 184 						# this is the furthest the monster will move right
+li $s4, 184 						# moving carrot
 la $t3, lives						
 lw $t3, 0($t3)						# number of lives throughout the game
 li $s7, 1	
-li $t4, 60					# current level
+li $t4, 60						# current level
 
 
 jal set_background					# set the background - line 79
@@ -164,35 +168,35 @@ set_background:
 initialize_game:
 	jal set_background
 	li $a2, 0x37969D
-	li $a0, 12416	#ladder 1
+	li $a0, 12416					#ladder 1
 	subi $a1, $a0, 256
 	add $a0, $a0, $t0
 	jal ladder_horizontal
 	add $a1, $a1, $t0
 	jal ladder_vertical
 
-	li $a0, 9540	#ladder 2
+	li $a0, 9540					#ladder 2
 	subi $a1, $a0, 256
 	add $a0, $a0, $t0
 	jal ladder_horizontal
 	add $a1, $a1, $t0
 	jal ladder_vertical
 
-	li $a0, 9632	#ladder 3
+	li $a0, 9632					#ladder 3
 	subi $a1, $a0, 256
 	add $a0, $a0, $t0
 	jal ladder_horizontal
 	add $a1, $a1, $t0
 	jal ladder_vertical
 
-	li $a0, 6776	#ladder 4
+	li $a0, 6776					#ladder 4
 	subi $a1, $a0, 256
 	add $a0, $a0, $t0
 	jal ladder_horizontal
 	add $a1, $a1, $t0
 	jal ladder_vertical
 
-	li $a0, 4000	#ladder 5
+	li $a0, 4000					#ladder 5
 	subi $a1, $a0, 256
 	add $a0, $a0, $t0
 	jal ladder_horizontal
@@ -201,59 +205,60 @@ initialize_game:
 	
 	li $a1, 0xA77C38
 	li $a2, 0x5D1A0F
-	li $a0, COOKIE1  #5 cookies
+
+	li $a0, COOKIE1  				# cookie 1
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, COOKIE2
+	li $a0, COOKIE2  				# cookie 2
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, COOKIE3
+	li $a0, COOKIE3  				# cookie 3
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, COOKIE4
+	li $a0, COOKIE4  				# cookie 4
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 
-	li $a0, COOKIE5
+	li $a0, COOKIE5  				# cookie 5
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 	
 	
-	li $a1, 464	#mini carrot
+	li $a1, 464					# mini carrot life 1
 	addi $a1, $a1, BASE_ADDRESS
 	jal mini_carrot
 
-	li $a1, 476
+	li $a1, 476					# mini carrot life 2
 	addi $a1, $a1, BASE_ADDRESS
 	jal mini_carrot
 
-	li $a1, 488
+	li $a1, 488					# mini carrot life 3
 	addi $a1, $a1, BASE_ADDRESS
 	jal mini_carrot
 	
-	add $a1, $zero, $t0
+	add $a1, $zero, $t0				# display level number
 	addi $a1, $a1, 15216	
 	jal level_display
 
-		# store the original layout on stack
-	la $a0, B	# $a0 holds address of array B
-	li $a1, BASE_ADDRESS # $t0 stores the base address for display
-	li $a2, 0x10000 # save 256*256 pixels
+							# store the original layout on stack
+	la $a0, B					# $a0 holds address of array B
+	li $a1, BASE_ADDRESS 				# $t0 stores the base address for display
+	li $a2, 0x10000 				# save 256*256 pixels
 
 	
-	jal load_background
+	jal load_background				# save background array
 	
 
-		# initial player creation
+							# initial player creation
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
 	add $a1, $a1, $t0
 	jal player
 	
-		# initial cookie monster creation
+							# initial cookie monster creation
 	li $a2, 0x4587C0
 	add $a1, $s6, $zero
 	add $a1, $a1, $t0
@@ -266,85 +271,83 @@ initialize_game:
 	j game_loop
 	
 game_loop:
-	jal move_monster
-	jal check_monster_player_location
-	jal cookie_one
+	jal move_monster				# move the monster
+	jal check_monster_player_location		# check if the monster is touching the player
+	jal cookie_one					# check if the player is touching a cookie and if so, add to the display
 	jal cookie_two
 	jal cookie_three
 	jal cookie_four
 	jal cookie_five
-	jal check_winner
+	jal check_winner				# check if all 5 cookies have been earned
 	
-	li $t9, 0xffff0000		# get keypress from keyboard input
+	li $t9, 0xffff0000				# get keypress from keyboard input
 	lw $t8, 0($t9)
 	beq $t8, 1, keypress
 	j game_loop
 
 keypress:	
-	li	$v0, 32			# syscall sleep
-	addi	$a0, $zero, 60		# 60 ms
+	li	$v0, 32					# syscall sleep
+	addi	$a0, $zero, 60				# 60 ms
 	syscall
 	
 	lw $t5, 4($t9)
-	beq	$t5, 100, d_pressed	# if key press = 'd' branch to moveright
-	beq	$t5, 97, a_pressed	# else if key press = 'a' branch to moveLeft
-	beq	$t5, 119, w_pressed	# if key press = 'w' branch to moveUp
-	beq	$t5, 115, s_pressed	# else if key press = 's' branch to moveDown=
-	beq	$t5, 112, p_pressed	# restart game if key press = 'p'
+	beq	$t5, 100, d_pressed			# if key press = 'd' branch to moveright
+	beq	$t5, 97, a_pressed			# else if key press = 'a' branch to moveLeft
+	beq	$t5, 119, w_pressed			# if key press = 'w' branch to moveUp
+	beq	$t5, 115, s_pressed			# else if key press = 's' branch to moveDown
+	beq	$t5, 112, p_pressed			# restart game if key press = 'p'
 	j next_move
 	
 l_pressed:
-	jal initialize_game
+	#jal level_three
+	jal initialize_game				# l from start screen
 	
 w_pressed:
 	
-	addi  $s3, $zero, -256		# s3 = make player be 256 higher
+	addi  $s3, $zero, -256				# -256 moves player up by 1 pixel
 	add $a3, $s0, $s3
 	la $a2, B
 	la $t8, brown
-	lw $t8, 0($t8)		# brown color
+	lw $t8, 0($t8)					# brown color
 	add $a1, $t8, $zero
-	jal check_above
-	beq $v1, 1, next_move
+	jal check_above					# check if there is a platform above
+	beq $v1, 1, next_move				# if there is a platform above (check_above returns 1), then do nothing and go to next move
 	
-	la $a0, B	# $a0 holds address of array B
-	li $a1, BASE_ADDRESS # $t0 stores the base address for display
-	add $a1, $a1, $s0  # $t0 stores the base address for display
-	add $a0, $a0, $s0  # $t0 stores the base address for display
-	add $s0, $s3, $s0		# update player position
+	la $a0, B					# $a0 holds address of array B - background array
+	li $a1, BASE_ADDRESS 				# $t0 stores the base address for display
+	add $a1, $a1, $s0  				# $a1 gets players position on display
+	add $a0, $a0, $s0  				# $a0 gets players position in background array
+	add $s0, $s3, $s0				# update player position
 
-	jal clean_up
-		# initial player creation
+	jal clean_up					# recolor pixels player was just on to background color
+							# initial player creation onto next spot after moving
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
 	addi $a1, $a1, BASE_ADDRESS
 	jal player
 	
-	#add $a3, $s0, $zero
-	#la $a2, B
-	#jal check_flying
 	j next_move 	
 
 s_pressed:
-	addi $s3, $zero, 256		# s3 = make player be 256 higher
+	addi $s3, $zero, 256				# 256 moves player down by 1 pixel
 		
 	add $a3, $s0, $s3
 	la $a2, B
 	la $t8, brown
-	lw $t8, 0($t8)		# brown color
+	lw $t8, 0($t8)					# brown color
 	add $a1, $t8, $zero
 	jal check_down
 	beq $v1, 1, next_move
 	
-	la $a0, B	# $a0 holds address of array B
-	li $a1, BASE_ADDRESS # $t0 stores the base address for display
-	add $a1, $a1, $s0  # $t0 stores the base address for display
-	add $a0, $a0, $s0  # $t0 stores the base address for display
-	add $s0, $s3, $s0		# update player position
+	la $a0, B					# $a0 holds address of array B - background array
+	li $a1, BASE_ADDRESS 				# $t0 stores the base address for display
+	add $a1, $a1, $s0  				# $a1 gets players position on display
+	add $a0, $a0, $s0  				# $a0 gets players position in background array
+	add $s0, $s3, $s0				# update player position
 
-	jal clean_down
+	jal clean_down					# recolor old spot back to background colors
 	
-		# initial player creation
+							# create player one downwards
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
 	addi $a1, $a1, BASE_ADDRESS
@@ -354,26 +357,26 @@ s_pressed:
 	j next_move 
 	
 a_pressed:
-	addi $s3, $zero, -4		# s3 = make player be 256 higher
+	addi $s3, $zero, -4				# make player go one back
 	
 		
 	add $a3, $s0, $s3
 	la $a2, B
 	la $t8, brown
-	lw $t8, 0($t8)		# brown color
+	lw $t8, 0($t8)					# brown color
 	add $a1, $t8, $zero
 	jal check_left
 	beq $v1, 1, next_move
 	
-	la $a0, B	# $a0 holds address of array B
-	li $a1, BASE_ADDRESS # $t0 stores the base address for display
-	add $a1, $a1, $s0  # $t0 stores the base address for display
-	add $a0, $a0, $s0  # $t0 stores the base address for display
-	add $s0, $s3, $s0		# update player position
+	la $a0, B					# $a0 holds address of array B - background array
+	li $a1, BASE_ADDRESS 				# $t0 stores the base address for display
+	add $a1, $a1, $s0  				# $a1 gets players position on display
+	add $a0, $a0, $s0  				# $a0 gets players position in background array
+	add $s0, $s3, $s0				# update player position
 
 	
-	jal clean_left
-		# initial player creation
+	jal clean_left					# change pixels back to background color
+							# create player 1 to left
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
 	addi $a1, $a1, BASE_ADDRESS
@@ -383,26 +386,26 @@ a_pressed:
 	j next_move 
 	
 d_pressed:
-	addi  $s3, $zero, 4		# s3 = make player be 256 higher
+	addi  $s3, $zero, 4				# make player be 1 pixel to the right
 
 	
 	add $a3, $s0, $s3
 	la $a2, B
 	la $t8, brown
-	lw $t8, 0($t8)		# brown color
+	lw $t8, 0($t8)					# brown color
 	add $a1, $t8, $zero
 	jal check_right
 	beq $v1, 1, next_move
 	
-	la $a0, B	# $a0 holds address of array B
-	li $a1, BASE_ADDRESS # $t0 stores the base address for display
-	add $a1, $a1, $s0  # $t0 stores the base address for display
-	add $a0, $a0, $s0  # $t0 stores the base address for display
-	add $s0, $s3, $s0		# update player position
+	la $a0, B					# $a0 holds address of array B - background array
+	li $a1, BASE_ADDRESS 				# $t0 stores the base address for display
+	add $a1, $a1, $s0  				# $a1 gets players position on display
+	add $a0, $a0, $s0  				# $a0 gets players position in background array
+	add $s0, $s3, $s0				# update player position
 
 	
-	jal clean_right
-		# initial player creation
+	jal clean_right					# clean pixels player used to be on to background color
+							# create player 1 to the right
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
 	addi $a1, $a1, BASE_ADDRESS
@@ -411,25 +414,25 @@ d_pressed:
 	j next_move 
 	
 p_pressed:
-			# store the original layout on stack
-	la $a0, B	# $a0 holds address of array B
-	li $a1, BASE_ADDRESS # $t0 stores the base address for display
-	li $a2, 0x10000 # save 256*256 pixels
+							
+	la $a0, B					# $a0 holds address of array B
+	li $a1, BASE_ADDRESS 				# base address
+	li $a2, 0x10000 				# save 256*256 pixels
 
-	jal clear_background
+	jal clear_background				# set background back to plain
 	addi $s0, $zero, 12544
 
-		# initial player creation
+							# put player back
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
 	addi $a1, $a1, BASE_ADDRESS
 	jal player
 
-	j main
+	j main						# start over
 
 
 next_move:
-	jal check_monster_player_location
+	jal check_monster_player_location		# do next move after checking if player earned a cookie or touched monster
 	jal check_gravity_needed
 	li $t9, COOKIE1
 	jal check_cookie_player_location
@@ -441,11 +444,11 @@ next_move:
 	jal check_cookie_player_location
 	li $t9, COOKIE5
 	jal check_cookie_player_location
-	j 	game_loop		# loop back to beginning
+	j 	game_loop				# loop back to beginning on full game loop
 
 
-check_cookie_player_location:
-	addi $t7, $t9, 16
+check_cookie_player_location:				# checks if player and cookie collided anywhere - player earns point
+	addi $t7, $t9, 16				# get points to compare in cookie and player - if same location, then check if cookie already found before
 	addi $t8, $s0, 768
 	beq $t8, $t7, is_it_found
 	#addi $t7, $t9, 16
@@ -455,7 +458,7 @@ check_cookie_player_location:
 
 
 is_it_found:
-	add $a0, $zero, $t9
+	add $a0, $zero, $t9				# if the pixel is background color and color of player hair, then the cookie has already been earned
 	addi $a0, $a0, BASE_ADDRESS
 	addi $a1, $zero, BASE_ADDRESS
 	lw $t7, 8($a0)
@@ -469,34 +472,34 @@ case_two:
 	bne $a2, $t7, found_a_cookie
 	jr $ra
 		
-found_a_cookie:
-	la $a0, B
-	li $a1, BASE_ADDRESS # $t0 stores the base address for display
-	li $a2, 0x10000 # save 256*256 pixels
+found_a_cookie:						
+	la $a0, B					# background array
+	li $a1, BASE_ADDRESS 				# $t0 stores the base address for display
+	li $a2, 0x10000 				# save 256*256 pixels
 	jal clear_background
-	la $a1, pink	#get rid of cookie
+	la $a1, pink					# get pink
 	la $a2, pink
-	lw $a1, 0($a1)
+	lw $a1, 0($a1)					# color old spot with cookie on it to a pink cookie over the old cookie
 	lw $a2, 0($a2)
 	add $a0, $zero, $t9
 	addi $a0, $a0, BASE_ADDRESS
 	jal cookie
 	la $a0, B
-	li $a1, BASE_ADDRESS # $t0 stores the base address for display
-	li $a2, 0x10000 # save 256*256 pixels
-	jal load_background
-			# initial player creation
-	li $a2, 0xFFE6C4
+	li $a1, BASE_ADDRESS 				# $t0 stores the base address for display
+	li $a2, 0x10000 				# save 256*256 pixels
+	jal load_background				# refresh background after changes
+							# create player over refreshed background
+	li $a2, 0xFFE6C4				
 	add $a1, $s0, $zero
 	addi $a1, $a1, BASE_ADDRESS
 	jal player
 	j end_loop
 
-end_loop:
+end_loop:						# go back to looping
 	j game_loop
 
-check_winner:
-	li $t9, COOKIE1
+check_winner:						# check if all 5 cookies have been earned 
+	li $t9, COOKIE1					# if cookie 1 location is now pink, then go to cookie 2 check
 	li $a3, 0
 	add $a0, $zero, $t9
 	addi $a0, $a0, BASE_ADDRESS
@@ -505,22 +508,22 @@ check_winner:
 	la $a2, pink
 	lw $a2, 0($a2)
 	bne $a2, $t7, continue
-	li $t9, COOKIE2
+	li $t9, COOKIE2					# if cookie 2 location is now pink, then go to cookie 3 check
 	add $a0, $zero, $t9
 	addi $a0, $a0, BASE_ADDRESS
 	lw $t7, 4($a0)
 	bne $a2, $t7, continue
-	li $t9, COOKIE3
+	li $t9, COOKIE3					# if cookie 3 location is now pink, then go to cookie 4 check
+	add $a0, $zero, $t9
+	addi $a0, $a0, BASE_ADDRESS
+	lw $t7, 4($a0)
+	bne $a2, $t7, continue	
+	li $t9, COOKIE4					# if cookie 4 location is now pink, then go to cookie 5 check
 	add $a0, $zero, $t9
 	addi $a0, $a0, BASE_ADDRESS
 	lw $t7, 4($a0)
 	bne $a2, $t7, continue
-	li $t9, COOKIE4
-	add $a0, $zero, $t9
-	addi $a0, $a0, BASE_ADDRESS
-	lw $t7, 4($a0)
-	bne $a2, $t7, continue
-	li $t9, COOKIE5
+	li $t9, COOKIE5					# if cookie 5 location is now pink, then winner or next level
 	add $a0, $zero, $t9
 	addi $a0, $a0, BASE_ADDRESS
 	lw $t7, 4($a0)
@@ -534,25 +537,25 @@ check_winner:
 	beq $s7, 2, level_three
 	j winner_page
 	
-level_two:
+level_two:						# next level - set values to what u want it to be this iteration
 li $s7, 2
 li $t0, BASE_ADDRESS 					# $t0 stores the base address for display
 li $t1, 0x10000 					# save 256*256 pixels
 li $s0, INITIAL_PLAYER			
-li $s6, INITIAL_MONSTER_2					# address of the background array					# get location of cookies throughout the game
-li $t2, 184 						# this is the furthest the monster will move right
+li $s6, INITIAL_MONSTER_2				# new monster location
+li $t2, 184 						
 la $t3, lives						
 lw $t3, 0($t3)	
 li $t4, 60		
 jal set_background
-j initialize_game
+j initialize_game		
 	
-level_three:
+level_three:						# next level - set values to what u want it to be this iteration
 li $s7, 3
 li $t0, BASE_ADDRESS 					# $t0 stores the base address for display
 li $t1, 0x10000 					# save 256*256 pixels
-li $s0, INITIAL_PLAYER_2		
-li $s6, INITIAL_MONSTER_3					# address of the background array					# get location of cookies throughout the game
+li $s0, INITIAL_PLAYER_2				# new player address
+li $s6, INITIAL_MONSTER_3				# new monster address				# get location of cookies throughout the game
 li $t2, 184 						# this is the furthest the monster will move right
 la $t3, lives						
 lw $t3, 0($t3)	
@@ -560,7 +563,7 @@ li $t4, 30
 jal set_background
 j initialize_game
 
-cookie_one:
+cookie_one:						# check if cookie 1 is caught - if it is then add a cookie to display
 	li $t9, COOKIE1
 	li $a3, 0
 	add $a0, $zero, $t9
@@ -574,7 +577,7 @@ cookie_one:
 	addi $a0, $a0, 264
 	j mini_cookie
 	jr $ra
-cookie_two:
+cookie_two:						# check if cookie 2 is caught - if it is then add a cookie to display
 	li $t9, COOKIE2
 	li $a3, 0
 	add $a0, $zero, $t9
@@ -588,7 +591,7 @@ cookie_two:
 	addi $a0, $a0, 276
 	j mini_cookie
 	jr $ra
-cookie_three:
+cookie_three:						# check if cookie 3 is caught - if it is then add a cookie to display
 	li $t9, COOKIE3
 	li $a3, 0
 	add $a0, $zero, $t9
@@ -602,7 +605,7 @@ cookie_three:
 	addi $a0, $a0, 288
 	j mini_cookie
 	jr $ra
-cookie_four:
+cookie_four:						# check if cookie 4 is caught - if it is then add a cookie to display
 	li $t9, COOKIE4
 	li $a3, 0
 	add $a0, $zero, $t9
@@ -615,9 +618,9 @@ cookie_four:
 	addi $a0, $zero, BASE_ADDRESS
 	addi $a0, $a0, 300
 	j mini_cookie
-	jr $ra
-cookie_five:
-	li $t9, COOKIE5
+	jr $ra	
+cookie_five:						# check if cookie 5 is caught - if it is then add a cookie to display
+	li $t9, COOKIE5	
 	li $a3, 0
 	add $a0, $zero, $t9
 	addi $a0, $a0, BASE_ADDRESS
@@ -631,7 +634,7 @@ cookie_five:
 	j mini_cookie
 	jr $ra
 	
-check_gravity_needed:
+check_gravity_needed:	
 	la $a1, pink
 	lw $a1, 0($a1)
 	la $a2, B
@@ -845,10 +848,15 @@ decrease_lives:
 	j send_to_start
 
 your_dead:
-	li $a0, 0	#background
+jal cookie_one					# check if the player is touching a cookie and if so, add to the display
+jal cookie_two
+jal cookie_three
+jal cookie_four
+jal cookie_five
+	li $a0, 1280	#background
 	addi $a0, $a0, BASE_ADDRESS
 	li $t1, 0x10000 # save 256*256 pixels
-	li $a1, 0
+	li $a1, 1280
 	li $a2, 0xffc0cb
 	j end_scene
 
@@ -882,8 +890,8 @@ send_to_start:
 	li $a2, 0x10000 # save 256*256 pixels
 
 	jal clear_background
-	addi $s0, $zero, 12544
-
+	beq $s7, 3, reset_two
+	addi $s0, $zero, INITIAL_PLAYER
 		# initial player creation
 	li $a2, 0xFFE6C4
 	add $a1, $s0, $zero
@@ -892,6 +900,15 @@ send_to_start:
 
 	j next_move
 
+reset_two:
+	addi $s0, $zero, INITIAL_PLAYER_2
+			# initial player creation
+	li $a2, 0xFFE6C4
+	add $a1, $s0, $zero
+	addi $a1, $a1, BASE_ADDRESS
+	jal player
+
+	j next_move
 move_monster:
 	li	$v0, 32			# syscall sleep
 	add	$a0, $zero, $t4		# 60 ms
