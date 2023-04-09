@@ -26,7 +26,8 @@
 # 6. Start menu - 1 mark
 #
 # Link to video demonstration for final submission:
-# - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
+# - https://play.library.utoronto.ca/watch/596b0575a48c6becebec50a99d902e45 
+
 #
 # Are you OK with us sharing the video with people outside course staff?
 # - yes 
@@ -394,7 +395,7 @@ keypress:
 	
 l_pressed:
 	# jal level_two
-	 jal level_three
+	 #jal level_three
 	jal initialize_game				# l from start screen
 	
 w_pressed:
